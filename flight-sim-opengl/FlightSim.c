@@ -73,9 +73,9 @@ void myDisplay()
 
 
 	// set to projection mode 
-	glMatrixMode(GL_MODELVIEW);
+	//glMatrixMode(GL_MODELVIEW);
 
-	glLoadIdentity();
+	//glLoadIdentity();
 
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
@@ -85,7 +85,32 @@ void myDisplay()
 	// initialize quad
 	GLUquadric *quad;
 	quad = gluNewQuadric();
+	
+	// set the line width
+	glLineWidth(5.0);
+	glBegin(GL_LINES);
+	// X
+	glColor3f(1.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.3, 0.0, 0.0);
+	// Y
+	glColor3f(0.0, 1.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.3, 0.0);
+	// Z
+	glColor3f(0.0, 0.0, 1.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(-0.2, 0.0, 1.0);
+	glEnd();
 
+	// draw the circle at the center
+	glColor3f(1.0, 1.0, 1.0);
+	glTranslatef(0.0, 0.0, 0.0);
+	gluSphere(quad, 0.02, 25, 100);
+
+	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
+
+	glutSwapBuffers();
 
 }
 
