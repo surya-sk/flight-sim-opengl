@@ -17,7 +17,9 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0,0.0, 2.5 };
+GLfloat cameraPosition[] = { 0.0, 0.0, 2.5 };
+
+const GLint gridSize = 100;
 
 /************************************************************************
 
@@ -108,10 +110,46 @@ void myDisplay()
 	glTranslatef(0.0, 0.0, 0.0);
 	gluSphere(quad, 0.02, 25, 100);
 
-	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
+	//glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
+
+	glPushMatrix();
+	glTranslatef(0.0, - 0.5, 0.0);
+	glBegin(GL_QUADS);
+	for (float i = 0; i < gridSize; i += 0.1)
+	{
+		float t = i;
+		for (float j = 0; j < gridSize; j += 0.1)
+		{
+			float s = j;
+			glVertex3f(t, 0,s);
+			glVertex3f(t + 0.1, 0, s);
+			glVertex3f(t + 0.1, 0, s + 0.1);
+			glVertex3f(t,0, s + 0.1);
+		}
+	}
+	glEnd();
+	glPopMatrix();
 
 	glutSwapBuffers();
 
+}
+
+/************************************************************************
+
+Function:		reshape
+
+Description:	Handles window reshape
+
+
+*************************************************************************/
+void reshape(int newWidth, int newHeight)
+{
+	glViewport(0.0, 0.0, newWidth, newHeight);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45, (float)newWidth / (float)newHeight, 0.1, 20);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 }
 
 /************************************************************************
@@ -140,6 +178,8 @@ void main(int argc, char** argv)
 
 	// set the display function
 	glutDisplayFunc(myDisplay);
+
+	glutReshapeFunc(reshape);
 
 	// initialize the rendering context
 	initializeGL();
