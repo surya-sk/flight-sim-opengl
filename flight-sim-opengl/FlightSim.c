@@ -11,6 +11,7 @@ Author:			Surya Kashyap
 
 //include library headers
 #include <freeglut.h>
+#include <stdio.h>
 
 // window dimensions
 GLint windowHeight = 600;
@@ -19,7 +20,11 @@ GLint windowWidth = 600;
 // camera position
 GLfloat cameraPosition[] = { 0.0, 0.0, 2.5 };
 
+// size of the grid of quads
 const GLint gridSize = 100;
+
+// check whether to toggle fullscreen
+GLint goFullScreen = 0;
 
 /************************************************************************
 
@@ -136,6 +141,22 @@ void myDisplay()
 
 /************************************************************************
 
+Function:		myIdle
+
+Description:	Handles idle functions
+
+
+*************************************************************************/
+void myIdle()
+{
+	if (goFullScreen)
+	{
+		glutFullScreen();
+	}
+}
+
+/************************************************************************
+
 Function:		reshape
 
 Description:	Handles window reshape
@@ -150,6 +171,32 @@ void reshape(int newWidth, int newHeight)
 	gluPerspective(45, (float)newWidth / (float)newHeight, 0.1, 20);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+}
+
+/************************************************************************
+
+Function:		myKey
+
+Description:	Handles key presses
+
+
+*************************************************************************/
+void myKey(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	// if 'f' is pressed
+	case 'f':
+		if (goFullScreen)
+		{
+			goFullScreen = 0;
+		}
+		else
+		{
+			goFullScreen = 1;
+		}
+		break;
+	}
 }
 
 /************************************************************************
@@ -179,7 +226,14 @@ void main(int argc, char** argv)
 	// set the display function
 	glutDisplayFunc(myDisplay);
 
+	// set the idle function
+	glutIdleFunc(myIdle);
+
+	// set the reshape function
 	glutReshapeFunc(reshape);
+
+	// set the keyboard function
+	glutKeyboardFunc(myKey);
 
 	// initialize the rendering context
 	initializeGL();
