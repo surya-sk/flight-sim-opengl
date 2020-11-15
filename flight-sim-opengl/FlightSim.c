@@ -26,6 +26,9 @@ const GLint gridSize = 100;
 // check whether to toggle fullscreen
 GLint goFullScreen = 0;
 
+// toggle polygon mode
+GLint showWireFrame = 0;
+
 /************************************************************************
 
 
@@ -153,6 +156,10 @@ void myIdle()
 	{
 		glutFullScreen();
 	}
+	else
+	{
+		glutLeaveFullScreen();
+	}
 }
 
 /************************************************************************
@@ -194,6 +201,20 @@ void myKey(unsigned char key, int x, int y)
 		else
 		{
 			goFullScreen = 1;
+		}
+		break;
+	// exit if 'e' is pressed
+	case 'q':
+		glutExit();
+		break;
+	case 'w':
+		if (showWireFrame)
+		{
+			showWireFrame = 0;
+		}
+		else
+		{
+			showWireFrame = 1;
 		}
 		break;
 	}
