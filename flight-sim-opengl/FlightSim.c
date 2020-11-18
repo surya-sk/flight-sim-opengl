@@ -24,10 +24,10 @@ GLint windowWidth = 600;
 GLfloat cameraPosition[] = { 0.0, 0.0, 2.5 };
 
 // difference added at each frame
-GLfloat interpDiff = 0.003;
+GLfloat interpDiff = 0.0003;
 
 // determine direction to move the camera in
-GLint moveUp, moveDown, moveRight, moveLeft, moveForward, moveBackward = 0;
+GLint moveUp, moveDown, moveRight, moveLeft, moveForward, moveBackward, increaseSpeed, decreaseSpeed = 0;
 
 // size of the grid of quads
 const GLint gridSize = 100;
@@ -256,10 +256,10 @@ void specialKeys(int key, int x, int y)
 		moveDown = 1;
 		break;
 	case GLUT_KEY_PAGE_UP:
-		moveForward = 1;
+		increaseSpeed = 1;
 		break;
 	case GLUT_KEY_PAGE_DOWN:
-		moveBackward = 1;
+		decreaseSpeed = 1;
 		break;
 	}
 
@@ -277,6 +277,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
+	cameraPosition[2] -= interpDiff;
 	// map camera movement to keys
 	if (moveRight)
 	{
@@ -294,13 +295,26 @@ void determineMovement()
 	{
 		cameraPosition[1] -= interpDiff;
 	}
-	if (moveForward)
+	//if (moveForward)
+	//{
+	//	cameraPosition[2] -= interpDiff;
+	//}
+	//if (moveBackward)
+	//{
+	//	cameraPosition[2] += interpDiff;
+	//}
+	if (increaseSpeed)
 	{
-		cameraPosition[2] -= interpDiff;
+		interpDiff += 0.0002;
+		increaseSpeed = 0;
 	}
-	if (moveBackward)
+	if (decreaseSpeed)
 	{
-		cameraPosition[2] += interpDiff;
+		interpDiff -= 0.0002;
+		if (interpDiff < 0)
+		{
+			interpDiff = 0;
+		}
 	}
 }
 
@@ -331,10 +345,10 @@ void myKeyUp(int key, int x, int y)
 		moveDown = 0;
 		break;
 	case GLUT_KEY_PAGE_UP:
-		moveForward = 0;
+		increaseSpeed = 0;
 		break;
 	case GLUT_KEY_PAGE_DOWN:
-		moveBackward = 0;
+		decreaseSpeed = 0;
 		break;
 	}
 }
