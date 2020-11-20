@@ -57,7 +57,7 @@ GLint numCVertices, numCNormals, numCFaces;
 FILE *fileStream;
 char fileText[100];
 
-int arr[33][500][11];
+int arr[33][500][15];
 
 GLfloat lx = 0.0; GLfloat ly = 0.0;
 
@@ -132,16 +132,21 @@ void initializeGL()
 		else if (fileText[0] == 'f')
 		{
 			char delim[] = " ";
-			char *ptr = strtok(fileText, delim);
+			char temp[100];
+			strcpy(temp, fileText);
+			char *ptr = strtok(temp, delim);
 			int value;
 			h = 0;
 			while (ptr != NULL)
 			{
 				//printf("%s ", ptr);
-				if (ptr != 'f' && ptr!="\0")
+				if (ptr[0] != 'f')
 				{
-					sscanf(ptr, "%04d", &value);
-					//printf( "%d %d %s ", l, h, ptr);
+					if (sscanf(ptr, "%d", &value) != 1)
+					{
+						break;
+					}
+					printf( "%d %d %d ", l, h, value);
 					arr[k][l][h] = value;
 					h++;
 				}
@@ -154,6 +159,72 @@ void initializeGL()
 
 	numCVertices = i;
 	numCNormals = j;
+}
+
+/************************************************************************
+
+
+Function:		drawReferencePoint
+
+
+Description:	Draws point of reference
+
+
+*************************************************************************/
+void drawReferencePoint(GLUquadric *quad)
+{
+	// set the line width
+	glLineWidth(5.0);
+	glBegin(GL_LINES);
+	// X
+	glColor3f(1.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.3, 0.0, 0.0);
+	// Y
+	glColor3f(0.0, 1.0, 0.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(0.0, 0.3, 0.0);
+	// Z
+	glColor3f(0.0, 0.0, 1.0);
+	glVertex3f(0.0, 0.0, 0.0);
+	glVertex3f(-0.2, 0.0, 1.0);
+	glEnd();
+
+	// draw the circle at the center
+	glColor3f(1.0, 1.0, 1.0);
+	glTranslatef(0.0, 0.0, 0.0);
+	gluSphere(quad, 0.02, 25, 100);
+}
+
+/************************************************************************
+
+
+Function:		drawGrid
+
+
+Description:	Draws a grid of quads
+
+
+*************************************************************************/
+void drawGrid()
+{
+	glPushMatrix();
+	glTranslatef(-2.5, -1.5, -5.5);
+	glBegin(GL_QUADS);
+	for (float i = 0; i < gridSize; i += gridDim)
+	{
+		float t = i;
+		for (float j = 0; j < gridSize; j += gridDim)
+		{
+			float s = j;
+			glVertex3f(t, 0, s);
+			glVertex3f(t + gridDim, 0, s);
+			glVertex3f(t + gridDim, 0, s + gridDim);
+			glVertex3f(t, 0, s + gridDim);
+		}
+	}
+	glEnd();
+	glPopMatrix();
 }
 
 /************************************************************************
@@ -186,46 +257,11 @@ void myDisplay()
 	GLUquadric *quad;
 	quad = gluNewQuadric();
 	
-	// set the line width
-	glLineWidth(5.0);
-	glBegin(GL_LINES);
-	// X
-	glColor3f(1.0, 0.0, 0.0);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0.3, 0.0, 0.0);
-	// Y
-	glColor3f(0.0, 1.0, 0.0);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(0.0, 0.3, 0.0);
-	// Z
-	glColor3f(0.0, 0.0, 1.0);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(-0.2, 0.0, 1.0);
-	glEnd();
+	// draw point of reference
+	drawReferencePoint(quad);
 
-	// draw the circle at the center
-	glColor3f(1.0, 1.0, 1.0);
-	glTranslatef(0.0, 0.0, 0.0);
-	gluSphere(quad, 0.02, 25, 100);
-
-
-	glPushMatrix();
-	glTranslatef(-2.5,  -1.5, -5.5);
-	glBegin(GL_QUADS);
-	for (float i = 0; i < gridSize; i+= gridDim)
-	{
-		float t = i;
-		for (float j = 0; j < gridSize; j += gridDim)
-		{
-			float s = j;
-			glVertex3f(t, 0,s);
-			glVertex3f(t + gridDim, 0, s);
-			glVertex3f(t + gridDim, 0, s + gridDim);
-			glVertex3f(t,0, s + gridDim);
-		}
-	}
-	glEnd();
-	glPopMatrix();
+	// draw grid
+	drawGrid();
 
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
