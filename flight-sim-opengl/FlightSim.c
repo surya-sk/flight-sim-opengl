@@ -31,6 +31,7 @@ GLint moveUp, moveDown, moveRight, moveLeft, moveForward, moveBackward, increase
 
 // size of the grid of quads
 const GLint gridSize = 100;
+const GLint gridDim = 1.0;
 
 // check whether to toggle fullscreen
 GLint goFullScreen = 0;
@@ -45,18 +46,22 @@ GLint planeFaces[][3];
 // number of vertices, normals and faces
 GLint numCVertices, numCNormals, numCFaces;
 
-typedef struct SubObjects
-{
-	GLfloat vertices[3639][6];
-} SubObject;
-
-struct SubObject* subobjects[33];
+//typedef struct SubObjects
+//{
+//	GLfloat vertices[3639][6];
+//} SubObject;
+//
+//struct SubObject* subobjects[33];
 
 // file stream to access directory 
 FILE *fileStream;
 char fileText[100];
 
-int arr[3639][6];
+int arr[33][500][11];
+
+GLfloat lx = 0.0; GLfloat ly = 0.0;
+
+
 
 /************************************************************************
 
@@ -99,7 +104,7 @@ void initializeGL()
 
 	GLfloat x, y, z;
 	int xFace, yFace, zFace;
-	int i = 0, j = 0, k = 0, l = 0;
+	int i = 0, j = 0, k = 0, l = 0, h = 0;
 
 	while (fgets(fileText, sizeof fileText, fileStream))
 	{
@@ -122,34 +127,33 @@ void initializeGL()
 		else if (fileText[0] == 'g')
 		{
 			k++;
+			l = 0;
 		}
 		else if (fileText[0] == 'f')
 		{
-			//char delim[] = " ";
-			//char *ptr = strtok(fileText, delim);
-			//SubObject object;
-			//int value;
-			//int i = 0;
-			//while (ptr != NULL)
-			//{
-			//	//printf("'%s'\n", ptr);
-			//	if (ptr[0] != 'f')
-			//	{
-			//		sscanf(ptr, "%04d", &value);
-			//		printf("%d %d\n", l, i);
-			//		arr[l][i] = value;
-			//		object.vertices[l][i] = value;
-			//		i++;
-			//	}
-			//	ptr = strtok(NULL, delim);
-			//}
+			char delim[] = " ";
+			char *ptr = strtok(fileText, delim);
+			int value;
+			h = 0;
+			while (ptr != NULL)
+			{
+				//printf("%s ", ptr);
+				if (ptr != 'f' && ptr!="\0")
+				{
+					sscanf(ptr, "%04d", &value);
+					//printf( "%d %d %s ", l, h, ptr);
+					arr[k][l][h] = value;
+					h++;
+				}
+				ptr = strtok(NULL, delim);
+				//printf("%d \n", h);
+			}
+			l++;
 		}
 	}
 
-
 	numCVertices = i;
 	numCNormals = j;
-	printf("%d", k);
 }
 
 /************************************************************************
@@ -175,7 +179,7 @@ void myDisplay()
 
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
-		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
+		lx, ly, cameraPosition[2] - 100,
 		0, 1, 0);
 
 	// initialize quad
@@ -206,18 +210,18 @@ void myDisplay()
 
 
 	glPushMatrix();
-	glTranslatef(-0.5,  -0.5, -1.5);
+	glTranslatef(-2.5,  -1.5, -5.5);
 	glBegin(GL_QUADS);
-	for (float i = 0; i < gridSize; i += 0.5)
+	for (float i = 0; i < gridSize; i+= gridDim)
 	{
 		float t = i;
-		for (float j = 0; j < gridSize; j += 0.5)
+		for (float j = 0; j < gridSize; j += gridDim)
 		{
 			float s = j;
 			glVertex3f(t, 0,s);
-			glVertex3f(t + 0.5, 0, s);
-			glVertex3f(t + 0.5, 0, s + 0.5);
-			glVertex3f(t,0, s + 0.5);
+			glVertex3f(t + gridDim, 0, s);
+			glVertex3f(t + gridDim, 0, s + gridDim);
+			glVertex3f(t,0, s + gridDim);
 		}
 	}
 	glEnd();
@@ -243,12 +247,12 @@ void specialKeys(int key, int x, int y)
 {
 	switch (key)
 	{
-	case GLUT_KEY_RIGHT:
-		moveRight = 1;
-		break;
-	case GLUT_KEY_LEFT:
-		moveLeft = 1;
-		break;
+	//case GLUT_KEY_RIGHT:
+	//	moveRight = 1;
+	//	break;
+	//case GLUT_KEY_LEFT:
+	//	moveLeft = 1;
+	//	break;
 	case GLUT_KEY_UP:
 		moveUp = 1;
 		break;
@@ -277,7 +281,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
-	cameraPosition[2] -= interpDiff;
+	//cameraPosition[2] -= interpDiff;
 	// map camera movement to keys
 	if (moveRight)
 	{
@@ -331,13 +335,13 @@ Description:	Handles key release functionality
 void myKeyUp(int key, int x, int y)
 {
 	switch (key)
-	{
+	{/*
 	case GLUT_KEY_RIGHT:
 		moveRight = 0;
 		break;
 	case GLUT_KEY_LEFT:
 		moveLeft = 0;
-		break;
+		break;*/
 	case GLUT_KEY_UP:
 		moveUp = 0;
 		break;
@@ -351,6 +355,11 @@ void myKeyUp(int key, int x, int y)
 		decreaseSpeed = 0;
 		break;
 	}
+}
+
+void myMouse(int x, int y)
+{
+	//lx = x;
 }
 
 /************************************************************************
@@ -475,6 +484,8 @@ void main(int argc, char** argv)
 
 	// special keys function
 	glutSpecialFunc(specialKeys);
+
+	glutPassiveMotionFunc(myMouse);
 
 	// initialize the rendering context
 	initializeGL();
