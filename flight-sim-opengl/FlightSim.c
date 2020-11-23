@@ -301,13 +301,13 @@ void drawPlane()
 			for (int k = 0; k < cFaceSizes[count]; k++)
 			{
 				int row = arr[i][j][k];
-				if (i >= 0 && i <= 3) glColor3f(1.0, 1.0, 0.0);
-				if (i > 3 && i < 6) glColor3f(0.0, 0.0, 0.0);
-				if (i == 6) glColor3f(1.0, 0.0, 1.0);
-				if (i == 7) glColor3f(0.0, 0.0, 1.0);
-				if (i > 7 && i < 14) glColor3f(1.0, 1.0, 0.0);
-				if (i > 13 && i < 26) glColor3f(0.0, 0.0, 1.0);
-				if (i > 25 && i < 33) glColor3f(1.0, 1.0, 0.0);
+				if (i > 0 && i < 5) glColor3f(1.0, 1.0, 0.0);
+				if (i > 4 && i < 7) glColor3f(0.0, 0.0, 0.0);
+				if (i == 7) glColor3f(1.0, 0.0, 1.0);
+				if (i == 8) glColor3f(0.0, 0.0, 1.0);
+				if (i > 8 && i < 15) glColor3f(1.0, 1.0, 0.0);
+				if (i > 14 && i < 27) glColor3f(0.0, 0.0, 1.0);
+				if (i > 26 && i < 34) glColor3f(1.0, 1.0, 0.0);
 				glNormal3f(planeNormals[row - 1][0], planeNormals[row - 1][1], planeNormals[row - 1][2]);
 				glVertex3f(planeVertices[row - 1][0], planeVertices[row - 1][1], planeVertices[row - 1][2]);
 
