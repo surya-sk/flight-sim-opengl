@@ -41,7 +41,6 @@ GLint showWireFrame = 0;
 
 // plane vertices, normals and faces
 GLfloat planeVertices[6763][3]; planeNormals[6763][3];
-GLint planeFaces[][3];
 
 // number of vertices, normals and faces
 GLint numCVertices, numCNormals, numCFaces;
@@ -57,48 +56,51 @@ GLint numCVertices, numCNormals, numCFaces;
 FILE *fileStream;
 char fileText[100];
 
-int arr[33][500][15];
+int arr[34][500][15];
+
+int sizes[34];
+
+int cFaceSizes[3640];
 
 GLfloat lx = 0.0; GLfloat ly = 0.0;
 
+//  position the light source at the origin 
+GLfloat lightPosition[] = { 0.0, 3.0, -2.5, 1.0 };
 
+// a material that is all zeros
+GLfloat zeroMaterial[] = { 0.0, 0.0, 0.0, 1.0 };
+
+// a red ambient material
+GLfloat redAmbient[] = { 0.5, 0.0, 0.0, 1.0 };
+
+// a blue diffuse material
+GLfloat blueDiffuse[] = { 0.1, 0.5, 0.8, 1.0 };
+
+// a red diffuse material
+GLfloat redDiffuse[] = { 1.0, 0.0, 0.0, 1.0 };
+
+// a white specular material
+GLfloat whiteSpecular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+
+// the degrees of shinnines (size of the specular highlight, bigger number means smaller highlight)
+GLfloat noShininess = 0.0;
+GLfloat highShininess = 100.0;
+
+int cl = 0;
 
 /************************************************************************
 
 
-Function:		initializeGL
+Function:		readCessnaFile
 
 
-	Description : Initializes the OpenGL rendering context for display.
+Description : Reads the Cessna.txt file.
 
 
 *************************************************************************/
-void initializeGL()
+void readCessnaFile()
 {
-	// set the background color
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-
-	// set default drawing color
-	glColor3f(1.0, 1.0, 1.0);
-
-	// set to projection mode 
-	glMatrixMode(GL_PROJECTION);
-
-	// clear any previous transformations
-	glLoadIdentity();
-
-	// set the perspective 
-	gluPerspective(45, (float)windowWidth / (float)windowHeight, 0.1, 20);
-
-	// set the shade model
-	glShadeModel(GL_SMOOTH);
-
-	// enable smooth line drawing
-	glEnable(GL_LINE_SMOOTH);
-
-	// enable depth testing
-	glEnable(GL_DEPTH_TEST);
-
 	// open the file
 	fileStream = fopen("cessna.txt", "r");
 
@@ -139,26 +141,69 @@ void initializeGL()
 			h = 0;
 			while (ptr != NULL)
 			{
-				//printf("%s ", ptr);
 				if (ptr[0] != 'f')
 				{
 					if (sscanf(ptr, "%d", &value) != 1)
 					{
 						break;
 					}
-					printf( "%d %d %d ", l, h, value);
+					//printf("%d  ", value);
 					arr[k][l][h] = value;
 					h++;
 				}
 				ptr = strtok(NULL, delim);
-				//printf("%d \n", h);
 			}
+			//printf("%d %d ",cl, h);
+			cFaceSizes[cl] = h;
+			cl++;
 			l++;
+
+			sizes[k] = l;
 		}
 	}
-
 	numCVertices = i;
 	numCNormals = j;
+	numCFaces = k;
+
+}
+
+/************************************************************************
+
+
+Function:		initializeGL
+
+
+	Description : Initializes the OpenGL rendering context for display.
+
+
+*************************************************************************/
+void initializeGL()
+{
+	// set the background color
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+
+	// set default drawing color
+	glColor3f(1.0, 1.0, 1.0);
+
+	// set to projection mode 
+	glMatrixMode(GL_PROJECTION);
+
+	// clear any previous transformations
+	glLoadIdentity();
+
+	// set the perspective 
+	gluPerspective(45, (float)windowWidth / (float)windowHeight, 0.1, 20);
+
+	// set the shade model
+	glShadeModel(GL_SMOOTH);
+
+	// enable smooth line drawing
+	glEnable(GL_LINE_SMOOTH);
+
+	// enable depth testing
+	glEnable(GL_DEPTH_TEST);
+
+	readCessnaFile();
 }
 
 /************************************************************************
@@ -209,6 +254,13 @@ Description:	Draws a grid of quads
 void drawGrid()
 {
 	glPushMatrix();
+	// draw a red floor
+	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, redDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, zeroMaterial);
+	glMaterialf(GL_FRONT, GL_SHININESS, noShininess);
+
+	glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 	glTranslatef(-2.5, -1.5, -5.5);
 	glBegin(GL_QUADS);
 	for (float i = 0; i < gridSize; i += gridDim)
@@ -225,6 +277,45 @@ void drawGrid()
 	}
 	glEnd();
 	glPopMatrix();
+}
+
+/************************************************************************
+
+
+Function:		drawPlane
+
+
+Description : Draws the plane from the cessna.txt file
+
+
+*************************************************************************/
+void drawPlane()
+{
+	int count = 0;
+
+	for (int i = 1; i < 34; i++)
+	{
+		for (int j = 0; j < sizes[i]; j++)
+		{
+			glBegin(GL_POLYGON);
+			for (int k = 0; k < cFaceSizes[count]; k++)
+			{
+				int row = arr[i][j][k];
+				if (i >= 0 && i <= 3) glColor3f(1.0, 1.0, 0.0);
+				if (i > 3 && i < 6) glColor3f(0.0, 0.0, 0.0);
+				if (i == 6) glColor3f(1.0, 0.0, 1.0);
+				if (i == 7) glColor3f(0.0, 0.0, 1.0);
+				if (i > 7 && i < 14) glColor3f(1.0, 1.0, 0.0);
+				if (i > 13 && i < 26) glColor3f(0.0, 0.0, 1.0);
+				if (i > 25 && i < 33) glColor3f(1.0, 1.0, 0.0);
+				glNormal3f(planeNormals[row - 1][0], planeNormals[row - 1][1], planeNormals[row - 1][2]);
+				glVertex3f(planeVertices[row - 1][0], planeVertices[row - 1][1], planeVertices[row - 1][2]);
+
+			}
+			glEnd();
+			count++;
+		}
+	}
 }
 
 /************************************************************************
@@ -253,15 +344,29 @@ void myDisplay()
 		lx, ly, cameraPosition[2] - 100,
 		0, 1, 0);
 
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
 	// initialize quad
 	GLUquadric *quad;
 	quad = gluNewQuadric();
 	
 	// draw point of reference
-	drawReferencePoint(quad);
+	//drawReferencePoint(quad);
+
+	//glPushMatrix();
+	//gluQuadricDrawStyle(quad, GLU_FILL);
+	//glShadeModel(GL_SMOOTH);
+	//gluQuadricNormals(quad, GLU_SMOOTH);
+	//glColor3f(1.0, 1.0, 1.0);
+	//glRotatef(80.0, 1.0, 0.0, 0.0);
+	//glTranslatef(0.0, -0.6, 0.0);
+	//gluDisk(quad, 0.02, 1.0, 25, 100);
+	//glPopMatrix();
 
 	// draw grid
-	drawGrid();
+	//drawGrid();
+
+	drawPlane();
 
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
@@ -418,7 +523,7 @@ void myIdle()
 	}
 	determineMovement();
 
-	glutPostRedisplay();
+	//glutPostRedisplay();
 }
 
 /************************************************************************
