@@ -291,8 +291,10 @@ Description : Draws the plane from the cessna.txt file
 *************************************************************************/
 void drawPlane()
 {
+	glPushMatrix();
+	glScalef(0.5, 0.5, 0.5);
+	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
-
 	for (int i = 1; i < 34; i++)
 	{
 		for (int j = 0; j < sizes[i]; j++)
@@ -316,6 +318,7 @@ void drawPlane()
 			count++;
 		}
 	}
+	glPopMatrix();
 }
 
 /************************************************************************
