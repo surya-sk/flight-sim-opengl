@@ -42,6 +42,8 @@ GLint showWireFrame = 0;
 // plane vertices, normals and faces
 GLfloat planeVertices[6763][3]; planeNormals[6763][3];
 
+
+
 // number of vertices, normals and faces
 GLint numCVertices, numCNormals, numCFaces;
 
@@ -56,9 +58,15 @@ GLint numCVertices, numCNormals, numCFaces;
 FILE *fileStream;
 char fileText[100];
 
-int arr[34][500][15];
+int cessnaArray[34][500][15];
 
-int sizes[34];
+int propArray[2][500][15];
+
+int propSizes[2];
+
+int pFaceSizes[131];
+
+int cessnaSizes[34];
 
 int cFaceSizes[3640];
 
@@ -87,7 +95,7 @@ GLfloat whiteSpecular[] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat noShininess = 0.0;
 GLfloat highShininess = 100.0;
 
-int cl = 0;
+int cl = 0, pl = 0;
 
 /************************************************************************
 
@@ -148,7 +156,7 @@ void readCessnaFile()
 						break;
 					}
 					//printf("%d  ", value);
-					arr[k][l][h] = value;
+					cessnaArray[k][l][h] = value;
 					h++;
 				}
 				ptr = strtok(NULL, delim);
@@ -158,7 +166,7 @@ void readCessnaFile()
 			cl++;
 			l++;
 
-			sizes[k] = l;
+			cessnaSizes[k] = l;
 		}
 	}
 	numCVertices = i;
@@ -166,6 +174,63 @@ void readCessnaFile()
 	numCFaces = k;
 
 }
+
+/************************************************************************
+
+
+Function:		readPropellerFile
+
+
+Description : Reads the propeller.txt file.
+
+
+*************************************************************************/
+void readPropellerFile()
+{
+	// open the file
+	fileStream = fopen("propeller.txt", "r");
+	GLfloat x, y, z;
+	int k = 0, l = 0, h = 0;
+
+	while (fgets(fileText, sizeof fileText, fileStream))
+	{
+		if (fileText[0] == 'g')
+		{
+			k++;
+			l = 0;
+		}
+		else if (fileText[0] == 'f')
+		{
+			char delim[] = " ";
+			char temp[100];
+			strcpy(temp, fileText);
+			char *ptr = strtok(temp, delim);
+			int value;
+			h = 0;
+			while (ptr != NULL)
+			{
+				if (ptr[0] != 'f')
+				{
+					if (sscanf(ptr, "%d", &value) != 1)
+					{
+						break;
+					}
+					//printf("%d  ", value);
+					propArray[k][l][h] = value;
+					h++;
+				}
+				ptr = strtok(NULL, delim);
+			}
+			//printf("%d %d ",pl, h);
+			pFaceSizes[pl] = h;
+			pl++;
+			l++;
+
+			propSizes[k] = l;
+		}
+	}
+}
+
 
 /************************************************************************
 
@@ -204,6 +269,10 @@ void initializeGL()
 	glEnable(GL_DEPTH_TEST);
 
 	readCessnaFile();
+
+	readPropellerFile();
+
+	
 }
 
 /************************************************************************
@@ -282,6 +351,40 @@ void drawGrid()
 /************************************************************************
 
 
+Function:		drawPropeller
+
+
+Description : Draws the plane from the propeller.txt file
+
+
+*************************************************************************/
+void drawPropeller()
+{
+	int count = 0;
+	for (int i = 1; i < 3; i++)
+	{
+		for (int j = 0; j < propSizes[i]; j++)
+		{
+			glBegin(GL_POLYGON);
+			for (int k = 0; k < pFaceSizes[count]; k++)
+			{
+				if (i == 1) glColor3f(1.0, 1.0, 0.0);
+				if (i == 2) glColor3f(1.0, 0.0, 0.0);
+				int row = propArray[i][j][k];
+				glNormal3f(planeNormals[row - 1][0], planeNormals[row - 1][1], planeNormals[row - 1][2]);
+				glVertex3f(planeVertices[row - 1][0], planeVertices[row - 1][1], planeVertices[row - 1][2]);
+
+			}
+			glEnd();
+			count++;
+		}
+	}
+}
+
+
+/************************************************************************
+
+
 Function:		drawPlane
 
 
@@ -297,12 +400,12 @@ void drawPlane()
 	int count = 0;
 	for (int i = 1; i < 34; i++)
 	{
-		for (int j = 0; j < sizes[i]; j++)
+		for (int j = 0; j < cessnaSizes[i]; j++)
 		{
 			glBegin(GL_POLYGON);
 			for (int k = 0; k < cFaceSizes[count]; k++)
 			{
-				int row = arr[i][j][k];
+				int row = cessnaArray[i][j][k];
 				if (i > 0 && i < 5) glColor3f(1.0, 1.0, 0.0);
 				if (i > 4 && i < 7) glColor3f(0.0, 0.0, 0.0);
 				if (i == 7) glColor3f(1.0, 0.0, 1.0);
@@ -318,8 +421,14 @@ void drawPlane()
 			count++;
 		}
 	}
+	drawPropeller();
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, -0.7);
+	drawPropeller();
+	glPopMatrix();
 	glPopMatrix();
 }
+
 
 /************************************************************************
 
@@ -370,6 +479,8 @@ void myDisplay()
 	//drawGrid();
 
 	drawPlane();
+
+	//drawPropeller();
 
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
