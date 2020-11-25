@@ -47,12 +47,6 @@ GLfloat planeVertices[6763][3]; planeNormals[6763][3];
 // number of vertices, normals and faces
 GLint numCVertices, numCNormals, numCFaces;
 
-//typedef struct SubObjects
-//{
-//	GLfloat vertices[3639][6];
-//} SubObject;
-//
-//struct SubObject* subobjects[33];
 
 // file stream to access directory 
 FILE *fileStream;
@@ -96,6 +90,12 @@ GLfloat noShininess = 0.0;
 GLfloat highShininess = 100.0;
 
 int cl = 0, pl = 0;
+
+// image size
+int imageWidth, imageHeight;
+
+// the image data
+GLubyte *imageData;
 
 /************************************************************************
 
@@ -421,11 +421,6 @@ void drawPlane()
 			count++;
 		}
 	}
-	drawPropeller();
-	glPushMatrix();
-	glTranslatef(0.0, 0.0, -0.7);
-	drawPropeller();
-	glPopMatrix();
 	glPopMatrix();
 }
 
