@@ -21,7 +21,7 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0, 0.0, 2.5 };
+GLfloat cameraPosition[] = { 0.0, 0.0, 12.5 };
 
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
@@ -42,8 +42,6 @@ GLint showWireFrame = 0;
 // plane vertices, normals and faces
 GLfloat planeVertices[6763][3]; planeNormals[6763][3];
 
-
-
 // number of vertices, normals and faces
 GLint numCVertices, numCNormals, numCFaces;
 
@@ -52,9 +50,9 @@ GLint numCVertices, numCNormals, numCFaces;
 FILE *fileStream;
 char fileText[100];
 
-int cessnaArray[34][500][15];
+int cessnaArray[34][700][30];
 
-int propArray[2][500][15];
+int propArray[2][500][30];
 
 int propSizes[2];
 
@@ -92,10 +90,10 @@ GLfloat highShininess = 100.0;
 int cl = 0, pl = 0;
 
 // image size
-int imageWidth, imageHeight;
+int skyImageWidth, skyImageHeight, landImageWidth, landImageHeight;
 
 // the image data
-GLubyte *imageData;
+GLubyte *skyImageData, *landImageData;
 
 /************************************************************************
 
@@ -172,6 +170,7 @@ void readCessnaFile()
 	numCVertices = i;
 	numCNormals = j;
 	numCFaces = k;
+	fclose(fileStream);
 
 }
 
@@ -229,6 +228,245 @@ void readPropellerFile()
 			propSizes[k] = l;
 		}
 	}
+	fclose(fileStream);
+}
+
+/************************************************************************
+
+	Function:		loadImage
+
+	Description:	Loads in the PPM image
+
+*************************************************************************/
+void loadSkyImage()
+{
+
+
+	// maxValue
+	int  maxValue;
+
+	// total number of pixels in the image
+	int  totalPixels;
+
+	// temporary character
+	char tempChar;
+
+	// counter variable for the current pixel in the image
+	int i;
+
+	// array for reading in header information
+	char headerLine[100];
+
+	// if the original values are larger than 255
+	float RGBScaling;
+
+	// temporary variables for reading in the red, green and blue data of each pixel
+	int red, green, blue;
+
+	// open the image file for reading
+	fileStream = fopen("sky08.ppm", "r");
+
+	// read in the first header line
+	//    - "%[^\n]"  matches a string of all characters not equal to the new line character ('\n')
+	//    - so we are just reading everything up to the first line break
+	fscanf(fileStream, "%[^\n] ", headerLine);
+
+	// make sure that the image begins with 'P3', which signifies a PPM file
+	if ((headerLine[0] != 'P') || (headerLine[1] != '3'))
+	{
+		printf("This is not a PPM file!\n");
+		exit(0);
+	}
+
+	// we have a PPM file
+	printf("This is a PPM file\n");
+
+	// read in the first character of the next line
+	fscanf(fileStream, "%c", &tempChar);
+
+	// while we still have comment lines (which begin with #)
+	while (tempChar == '#')
+	{
+		// read in the comment
+		fscanf(fileStream, "%[^\n] ", headerLine);
+
+		// print the comment
+		printf("%s\n", headerLine);
+
+		// read in the first character of the next line
+		fscanf(fileStream, "%c", &tempChar);
+	}
+
+	// the last one was not a comment character '#', so we need to put it back into the file stream (undo)
+	ungetc(tempChar, fileStream);
+
+	// read in the image hieght, width and the maximum value
+	fscanf(fileStream, "%d %d %d", &skyImageWidth, &skyImageHeight, &maxValue);
+
+	// print out the information about the image file
+	printf("%d rows  %d columns  max value= %d\n", skyImageHeight, skyImageWidth, maxValue);
+
+	// compute the total number of pixels in the image
+	totalPixels = skyImageWidth * skyImageHeight;
+
+	// allocate enough memory for the image  (3*) because of the RGB data
+	skyImageData = malloc(3 * sizeof(GLuint) * totalPixels);
+
+
+	// determine the scaling for RGB values
+	RGBScaling = 255.0 / maxValue;
+
+
+	// if the maxValue is 255 then we do not need to scale the 
+	//    image data values to be in the range or 0 to 255
+	if (maxValue == 255)
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileStream, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			skyImageData[3 * totalPixels - 3 * i - 3] = red;
+			skyImageData[3 * totalPixels - 3 * i - 2] = green;
+			skyImageData[3 * totalPixels - 3 * i - 1] = blue;
+		}
+	}
+	else  // need to scale up the data values
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileStream, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			skyImageData[3 * totalPixels - 3 * i - 3] = red * RGBScaling;
+			skyImageData[3 * totalPixels - 3 * i - 2] = green * RGBScaling;
+			skyImageData[3 * totalPixels - 3 * i - 1] = blue * RGBScaling;
+		}
+	}
+
+
+	// close the image file
+	fclose(fileStream);
+}
+
+/************************************************************************
+
+	Function:		loadImage
+
+	Description:	Loads in the PPM image
+
+*************************************************************************/
+void loadILandmage()
+{
+	// maxValue
+	int  maxValue;
+
+	// total number of pixels in the image
+	int  totalPixels;
+
+	// temporary character
+	char tempChar;
+
+	// counter variable for the current pixel in the image
+	int i;
+
+	// array for reading in header information
+	char headerLine[100];
+
+	// if the original values are larger than 255
+	float RGBScaling;
+
+	// temporary variables for reading in the red, green and blue data of each pixel
+	int red, green, blue;
+
+	// open the image file for reading
+	fileStream = fopen("sea02.ppm", "r");
+
+	// read in the first header line
+	//    - "%[^\n]"  matches a string of all characters not equal to the new line character ('\n')
+	//    - so we are just reading everything up to the first line break
+	fscanf(fileStream, "%[^\n] ", headerLine);
+
+	// make sure that the image begins with 'P3', which signifies a PPM file
+	if ((headerLine[0] != 'P') || (headerLine[1] != '3'))
+	{
+		printf("This is not a PPM file!\n");
+		exit(0);
+	}
+
+	// we have a PPM file
+	printf("This is a PPM file\n");
+
+	// read in the first character of the next line
+	fscanf(fileStream, "%c", &tempChar);
+
+	// while we still have comment lines (which begin with #)
+	while (tempChar == '#')
+	{
+		// read in the comment
+		fscanf(fileStream, "%[^\n] ", headerLine);
+
+		// print the comment
+		printf("%s\n", headerLine);
+
+		// read in the first character of the next line
+		fscanf(fileStream, "%c", &tempChar);
+	}
+
+	// the last one was not a comment character '#', so we need to put it back into the file stream (undo)
+	ungetc(tempChar, fileStream);
+
+	// read in the image hieght, width and the maximum value
+	fscanf(fileStream, "%d %d %d", &landImageWidth, &landImageHeight, &maxValue);
+
+	// print out the information about the image file
+	printf("%d rows  %d columns  max value= %d\n", landImageHeight, landImageWidth, maxValue);
+
+	// compute the total number of pixels in the image
+	totalPixels = landImageWidth * landImageHeight;
+
+	// allocate enough memory for the image  (3*) because of the RGB data
+	landImageData = malloc(3 * sizeof(GLuint) * totalPixels);
+
+
+	// determine the scaling for RGB values
+	RGBScaling = 255.0 / maxValue;
+
+
+	// if the maxValue is 255 then we do not need to scale the 
+	//    image data values to be in the range or 0 to 255
+	if (maxValue == 255)
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileStream, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			landImageData[3 * totalPixels - 3 * i - 3] = red;
+			landImageData[3 * totalPixels - 3 * i - 2] = green;
+			landImageData[3 * totalPixels - 3 * i - 1] = blue;
+		}
+	}
+	else  // need to scale up the data values
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileStream, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			landImageData[3 * totalPixels - 3 * i - 3] = red * RGBScaling;
+			landImageData[3 * totalPixels - 3 * i - 2] = green * RGBScaling;
+			landImageData[3 * totalPixels - 3 * i - 1] = blue * RGBScaling;
+		}
+	}
+
+
+	// close the image file
+	fclose(fileStream);
 }
 
 
@@ -270,9 +508,11 @@ void initializeGL()
 
 	readCessnaFile();
 
-	readPropellerFile();
+	//readPropellerFile();
 
-	
+	loadSkyImage();
+
+	loadILandmage();
 }
 
 /************************************************************************
@@ -456,19 +696,25 @@ void myDisplay()
 	// initialize quad
 	GLUquadric *quad;
 	quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	gluQuadricNormals(quad, GLU_SMOOTH);
+	gluQuadricTexture(quad, GL_TRUE);
+
+	glPushMatrix();
+	glTranslatef(0.0, -1.0, 0.0);
+	glRotatef(90, 1.0, 0.0, 0.0);
+	gluDisk(quad, 0.5, 5.0, 100, 25);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, -1.1, 0.0);
+	glRotatef(-90.0, 1, 0, 0);
+	gluCylinder(quad, 4.7, 4, 5, 15, 5);
+	glPushMatrix();
 	
 	// draw point of reference
 	//drawReferencePoint(quad);
 
-	//glPushMatrix();
-	//gluQuadricDrawStyle(quad, GLU_FILL);
-	//glShadeModel(GL_SMOOTH);
-	//gluQuadricNormals(quad, GLU_SMOOTH);
-	//glColor3f(1.0, 1.0, 1.0);
-	//glRotatef(80.0, 1.0, 0.0, 0.0);
-	//glTranslatef(0.0, -0.6, 0.0);
-	//gluDisk(quad, 0.02, 1.0, 25, 100);
-	//glPopMatrix();
 
 	// draw grid
 	//drawGrid();
