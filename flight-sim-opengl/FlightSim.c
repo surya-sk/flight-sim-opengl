@@ -21,7 +21,7 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0, 0.0, 2.5 };
+GLfloat cameraPosition[] = { 0.0, 0.0, 3.5 };
 
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
@@ -280,9 +280,6 @@ void loadSkyImage()
 		exit(0);
 	}
 
-	// we have a PPM file
-	printf("This is a PPM file\n");
-
 	// read in the first character of the next line
 	fscanf(fileStream, "%c", &tempChar);
 
@@ -397,9 +394,6 @@ void loadILandmage()
 		printf("This is not a PPM file!\n");
 		exit(0);
 	}
-
-	// we have a PPM file
-	printf("This is a PPM file\n");
 
 	// read in the first character of the next line
 	fscanf(fileStream, "%c", &tempChar);
@@ -745,19 +739,22 @@ void myDisplay()
 
 	glEnable(GL_TEXTURE_2D);
 
+	// draw the disk
 	glBindTexture(GL_TEXTURE_2D, landTextureId);
 	glPushMatrix();
 	glTranslatef(0.0, -1.0, 0.0);
 	glRotatef(90, 1.0, 0.0, 0.0);
-	gluDisk(quad, 0.5, 5.0, 100, 25);
+	gluDisk(quad, 1.0, 7.0, 100, 25);
 	glPopMatrix();
 
+
+	// draw the cylinder
 	glBindTexture(GL_TEXTURE_2D, skyTextureId);
 	glPushMatrix();
 	glTranslatef(0.0, -1.1, 0.0);
 	glRotatef(-90.0, 1, 0, 0);
-	gluCylinder(quad, 4.7, 4, 5, 15, 5);
-	glPushMatrix();
+	gluCylinder(quad, 5.0, 4.5, 5, 15, 5);
+	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);
 	
@@ -826,7 +823,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
-	//cameraPosition[2] -= interpDiff;
+	cameraPosition[2] -= interpDiff;
 	// map camera movement to keys
 	if (moveRight)
 	{
