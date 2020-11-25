@@ -21,7 +21,7 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0, 0.0, 12.5 };
+GLfloat cameraPosition[] = { 0.0, 0.0, 2.5 };
 
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
@@ -94,6 +94,8 @@ int skyImageWidth, skyImageHeight, landImageWidth, landImageHeight;
 
 // the image data
 GLubyte *skyImageData, *landImageData;
+
+GLuint skyTextureId, landTextureId;
 
 /************************************************************************
 
@@ -469,6 +471,43 @@ void loadILandmage()
 	fclose(fileStream);
 }
 
+/************************************************************************
+
+	Function:		createLandTexture
+
+	Description:	Creates texture for the land
+
+*************************************************************************/
+void createLandTexture()
+{
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &landTextureId);
+	glBindTexture(GL_TEXTURE_2D, landTextureId);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, landImageWidth, landImageHeight, GL_RGB, GL_UNSIGNED_BYTE, landImageData);
+}
+
+/************************************************************************
+
+	Function:		createSkyTexture
+
+	Description:	Creates texture for the sky
+
+*************************************************************************/
+void createSkyTexture()
+{
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &skyTextureId);
+	glBindTexture(GL_TEXTURE_2D, skyTextureId);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, skyImageWidth, skyImageHeight, GL_RGB, GL_UNSIGNED_BYTE, skyImageData);
+}
 
 /************************************************************************
 
@@ -513,6 +552,10 @@ void initializeGL()
 	loadSkyImage();
 
 	loadILandmage();
+
+	createLandTexture();
+	
+	createSkyTexture();
 }
 
 /************************************************************************
@@ -700,17 +743,23 @@ void myDisplay()
 	gluQuadricNormals(quad, GLU_SMOOTH);
 	gluQuadricTexture(quad, GL_TRUE);
 
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, landTextureId);
 	glPushMatrix();
 	glTranslatef(0.0, -1.0, 0.0);
 	glRotatef(90, 1.0, 0.0, 0.0);
 	gluDisk(quad, 0.5, 5.0, 100, 25);
 	glPopMatrix();
 
+	glBindTexture(GL_TEXTURE_2D, skyTextureId);
 	glPushMatrix();
 	glTranslatef(0.0, -1.1, 0.0);
 	glRotatef(-90.0, 1, 0, 0);
 	gluCylinder(quad, 4.7, 4, 5, 15, 5);
 	glPushMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 	
 	// draw point of reference
 	//drawReferencePoint(quad);
