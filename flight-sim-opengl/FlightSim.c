@@ -39,6 +39,9 @@ GLint goFullScreen = 0;
 // toggle polygon mode
 GLint showWireFrame = 0;
 
+// toggle between grid and textures
+GLint showGrid, showTextures = 0;
+
 // plane vertices, normals and faces
 GLfloat planeVertices[6763][3]; planeNormals[6763][3];
 
@@ -290,7 +293,7 @@ void loadSkyImage()
 		fscanf(fileStream, "%[^\n] ", headerLine);
 
 		// print the comment
-		printf("%s\n", headerLine);
+		//printf("%s\n", headerLine);
 
 		// read in the first character of the next line
 		fscanf(fileStream, "%c", &tempChar);
@@ -303,7 +306,7 @@ void loadSkyImage()
 	fscanf(fileStream, "%d %d %d", &skyImageWidth, &skyImageHeight, &maxValue);
 
 	// print out the information about the image file
-	printf("%d rows  %d columns  max value= %d\n", skyImageHeight, skyImageWidth, maxValue);
+	//printf("%d rows  %d columns  max value= %d\n", skyImageHeight, skyImageWidth, maxValue);
 
 	// compute the total number of pixels in the image
 	totalPixels = skyImageWidth * skyImageHeight;
@@ -405,7 +408,7 @@ void loadILandmage()
 		fscanf(fileStream, "%[^\n] ", headerLine);
 
 		// print the comment
-		printf("%s\n", headerLine);
+		//printf("%s\n", headerLine);
 
 		// read in the first character of the next line
 		fscanf(fileStream, "%c", &tempChar);
@@ -418,7 +421,7 @@ void loadILandmage()
 	fscanf(fileStream, "%d %d %d", &landImageWidth, &landImageHeight, &maxValue);
 
 	// print out the information about the image file
-	printf("%d rows  %d columns  max value= %d\n", landImageHeight, landImageWidth, maxValue);
+	//printf("%d rows  %d columns  max value= %d\n", landImageHeight, landImageWidth, maxValue);
 
 	// compute the total number of pixels in the image
 	totalPixels = landImageWidth * landImageHeight;
@@ -550,6 +553,8 @@ void initializeGL()
 	createLandTexture();
 	
 	createSkyTexture();
+
+	showTextures = 1;
 }
 
 /************************************************************************
@@ -701,6 +706,41 @@ void drawPlane()
 	glPopMatrix();
 }
 
+/************************************************************************
+
+
+Function:		drawSeaAndSky
+
+
+Description : Draws the sea and sky with textures
+
+
+*************************************************************************/
+
+void drawSeaAndSky(GLUquadric *quad)
+{
+	glEnable(GL_TEXTURE_2D);
+
+	glColor3f(1.0, 1.0, 1.0);
+	// draw the disk
+	glBindTexture(GL_TEXTURE_2D, landTextureId);
+	glPushMatrix();
+	glTranslatef(0.0, -1.0, 0.0);
+	glRotatef(90, 1.0, 0.0, 0.0);
+	gluDisk(quad, 1.0, 7.0, 100, 25);
+	glPopMatrix();
+
+
+	// draw the cylinder
+	glBindTexture(GL_TEXTURE_2D, skyTextureId);
+	glPushMatrix();
+	glTranslatef(0.0, -1.1, 0.0);
+	glRotatef(-90.0, 1, 0, 0);
+	gluCylinder(quad, 5.0, 4.5, 5, 15, 5);
+	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
+}
 
 /************************************************************************
 
@@ -737,33 +777,21 @@ void myDisplay()
 	gluQuadricNormals(quad, GLU_SMOOTH);
 	gluQuadricTexture(quad, GL_TRUE);
 
-	glEnable(GL_TEXTURE_2D);
-
-	// draw the disk
-	glBindTexture(GL_TEXTURE_2D, landTextureId);
-	glPushMatrix();
-	glTranslatef(0.0, -1.0, 0.0);
-	glRotatef(90, 1.0, 0.0, 0.0);
-	gluDisk(quad, 1.0, 7.0, 100, 25);
-	glPopMatrix();
-
-
-	// draw the cylinder
-	glBindTexture(GL_TEXTURE_2D, skyTextureId);
-	glPushMatrix();
-	glTranslatef(0.0, -1.1, 0.0);
-	glRotatef(-90.0, 1, 0, 0);
-	gluCylinder(quad, 5.0, 4.5, 5, 15, 5);
-	glPopMatrix();
-
-	glDisable(GL_TEXTURE_2D);
+	if (showTextures)
+	{
+		drawSeaAndSky(quad);
+	}
 	
-	// draw point of reference
-	//drawReferencePoint(quad);
+	if (showGrid)
+	{
+		// draw point of reference	
+		drawReferencePoint(quad);
+		// draw grid
+		drawGrid();
+	}
 
 
-	// draw grid
-	//drawGrid();
+
 
 	drawPlane();
 
@@ -823,7 +851,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
-	cameraPosition[2] -= interpDiff;
+	//cameraPosition[2] -= interpDiff;
 	// map camera movement to keys
 	if (moveRight)
 	{
@@ -924,7 +952,7 @@ void myIdle()
 	}
 	determineMovement();
 
-	//glutPostRedisplay();
+	glutPostRedisplay();
 }
 
 /************************************************************************
@@ -980,6 +1008,18 @@ void myKey(unsigned char key, int x, int y)
 		else
 		{
 			showWireFrame = 1;
+		}
+		break;
+	case 's':
+		if (showGrid)
+		{
+			showGrid = 0;
+			showTextures = 1;
+		}
+		else
+		{
+			showTextures = 0;
+			showGrid = 1;
 		}
 		break;
 	}
