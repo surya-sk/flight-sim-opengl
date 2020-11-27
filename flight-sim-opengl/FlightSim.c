@@ -67,6 +67,8 @@ int cFaceSizes[3640];
 
 GLfloat lx = 0.0; GLfloat ly = 0.0;
 
+float angle = 0.0;
+
 //  position the light source at the origin 
 GLfloat lightPosition[] = { 0.0, 3.0, -2.5, 1.0 };
 
@@ -605,14 +607,13 @@ Description:	Draws a grid of quads
 void drawGrid()
 {
 	glPushMatrix();
-	// draw a red floor
+
 	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, redDiffuse);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, blueDiffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, zeroMaterial);
 	glMaterialf(GL_FRONT, GL_SHININESS, noShininess);
 
-	glNormal3d(0, 1, 0);  // normal of the floor is pointing up
-	glTranslatef(-2.5, -1.5, -5.5);
+	glTranslatef(-4.0, -1.5, -5.5);
 	glBegin(GL_QUADS);
 	for (float i = 0; i < gridSize; i += gridDim)
 	{
@@ -620,9 +621,13 @@ void drawGrid()
 		for (float j = 0; j < gridSize; j += gridDim)
 		{
 			float s = j;
+			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t, 0, s);
+			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t + gridDim, 0, s);
+			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t + gridDim, 0, s + gridDim);
+			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t, 0, s + gridDim);
 		}
 	}
@@ -716,7 +721,6 @@ Description : Draws the sea and sky with textures
 
 
 *************************************************************************/
-
 void drawSeaAndSky(GLUquadric *quad)
 {
 	glEnable(GL_TEXTURE_2D);
@@ -763,9 +767,10 @@ void myDisplay()
 
 	glLoadIdentity();
 
+	glRotatef(-angle/10.0, 0.0, 1.0, 0.0);
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
-		lx, ly, cameraPosition[2] - 100,
+		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
 		0, 1, 0);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
@@ -779,6 +784,7 @@ void myDisplay()
 
 	if (showTextures)
 	{
+		// draw the sea and the sky
 		drawSeaAndSky(quad);
 	}
 	
@@ -797,7 +803,7 @@ void myDisplay()
 
 	//drawPropeller();
 
-	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
+	//glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
 	glutSwapBuffers();
 
@@ -851,7 +857,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
-	//cameraPosition[2] -= interpDiff;
+	cameraPosition[2] -= interpDiff;
 	// map camera movement to keys
 	if (moveRight)
 	{
@@ -905,13 +911,7 @@ Description:	Handles key release functionality
 void myKeyUp(int key, int x, int y)
 {
 	switch (key)
-	{/*
-	case GLUT_KEY_RIGHT:
-		moveRight = 0;
-		break;
-	case GLUT_KEY_LEFT:
-		moveLeft = 0;
-		break;*/
+	{
 	case GLUT_KEY_UP:
 		moveUp = 0;
 		break;
@@ -929,7 +929,9 @@ void myKeyUp(int key, int x, int y)
 
 void myMouse(int x, int y)
 {
-	//lx = x;
+	int prevX = (windowWidth / 2) - x;
+
+	angle += (float)prevX / 10.0;
 }
 
 /************************************************************************
