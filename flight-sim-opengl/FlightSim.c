@@ -69,20 +69,24 @@ GLfloat lx = 0.0; GLfloat ly = 0.0;
 
 float angle = 0.0;
 
+GLfloat lastX;
+
 //  position the light source at the origin 
-GLfloat lightPosition[] = { 0.0, 3.0, -2.5, 1.0 };
+GLfloat lightPosition[] = { 1.0, 3.0, 0.0, 1.0 };
 
 // a material that is all zeros
-GLfloat zeroMaterial[] = { 0.0, 0.0, 0.0, 1.0 };
+//GLfloat zeroMaterial[] = { 0.0, 0.0, 0.0, 1.0 };
+
+GLfloat zeroMaterial[] = { 0.8, 0.8, 0.8, 1.0 };
 
 // a red ambient material
-GLfloat redAmbient[] = { 0.5, 0.0, 0.0, 1.0 };
+GLfloat redAmbient[] = { 0.0, 0.0, 0.0, 1.0 };
 
 // a blue diffuse material
 GLfloat blueDiffuse[] = { 0.1, 0.5, 0.8, 1.0 };
 
 // a red diffuse material
-GLfloat redDiffuse[] = { 1.0, 0.0, 0.0, 1.0 };
+GLfloat redDiffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 
 // a white specular material
 GLfloat whiteSpecular[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -520,6 +524,31 @@ Function:		initializeGL
 *************************************************************************/
 void initializeGL()
 {
+	// define the light color and intensity
+	GLfloat ambientLight[] = { 0.0, 0.0, 0.0, 1.0 };  // relying on global ambient
+	GLfloat diffuseLight[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat specularLight[] = { 1.0, 1.0, 1.0, 1.0 };
+
+
+	//  the global ambient light level
+	GLfloat globalAmbientLight[] = { 0.2, 0.2, 0.2, 1.0 };
+
+	// set the global ambient light level
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbientLight);
+
+	// define the color and intensity for light 0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, diffuseLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, specularLight);
+	// enable lighting 
+	glEnable(GL_LIGHTING);
+	// enable light 0
+	glEnable(GL_LIGHT0);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+	glEnable(GL_COLOR_MATERIAL);
+
+	glEnable(GL_NORMALIZE);
 	// set the background color
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -543,6 +572,7 @@ void initializeGL()
 
 	// enable depth testing
 	glEnable(GL_DEPTH_TEST);
+
 
 	readCessnaFile();
 
@@ -606,13 +636,16 @@ Description:	Draws a grid of quads
 *************************************************************************/
 void drawGrid()
 {
-	glPushMatrix();
+	glEnable(GL_LIGHTING);
 
 	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, blueDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, zeroMaterial);
-	glMaterialf(GL_FRONT, GL_SHININESS, noShininess);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteSpecular);
+	glMaterialf(GL_FRONT, GL_SHININESS, highShininess);
+	glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 
+	glPushMatrix();
+	glColor3f(0, 0, 0.3);
 	glTranslatef(-4.0, -1.5, -5.5);
 	glBegin(GL_QUADS);
 	for (float i = 0; i < gridSize; i += gridDim)
@@ -621,13 +654,10 @@ void drawGrid()
 		for (float j = 0; j < gridSize; j += gridDim)
 		{
 			float s = j;
-			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
+
 			glVertex3f(t, 0, s);
-			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t + gridDim, 0, s);
-			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t + gridDim, 0, s + gridDim);
-			glNormal3d(0, 1, 0);  // normal of the floor is pointing up
 			glVertex3f(t, 0, s + gridDim);
 		}
 	}
@@ -681,7 +711,15 @@ Description : Draws the plane from the cessna.txt file
 *************************************************************************/
 void drawPlane()
 {
+	glDisable(GL_LIGHTING);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, blueDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteSpecular);
+	glMaterialf(GL_FRONT, GL_SHININESS, highShininess);
 	glPushMatrix();
+
+	glRotatef(-angle, 0.0, 1.0, 0.0);
+	glTranslatef(cameraPosition[0], cameraPosition[1], cameraPosition[2] - 2.0);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
@@ -723,6 +761,12 @@ Description : Draws the sea and sky with textures
 *************************************************************************/
 void drawSeaAndSky(GLUquadric *quad)
 {
+	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, redDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteSpecular);
+	glMaterialf(GL_FRONT, GL_EMISSION, noShininess);
+
+	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 
 	glColor3f(1.0, 1.0, 1.0);
@@ -740,7 +784,7 @@ void drawSeaAndSky(GLUquadric *quad)
 	glPushMatrix();
 	glTranslatef(0.0, -1.1, 0.0);
 	glRotatef(-90.0, 1, 0, 0);
-	gluCylinder(quad, 5.0, 4.5, 5, 15, 5);
+	gluCylinder(quad, 6.0, 5.5, 7, 15, 5);
 	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);
@@ -767,7 +811,7 @@ void myDisplay()
 
 	glLoadIdentity();
 
-	glRotatef(-angle/10.0, 0.0, 1.0, 0.0);
+	glRotatef(angle, 0.0, 1.0, 0.0);
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
 		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
@@ -803,7 +847,7 @@ void myDisplay()
 
 	//drawPropeller();
 
-	//glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
+	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
 	glutSwapBuffers();
 
@@ -857,7 +901,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
-	cameraPosition[2] -= interpDiff;
+	//cameraPosition[2] -= interpDiff;
 	// map camera movement to keys
 	if (moveRight)
 	{
@@ -929,9 +973,9 @@ void myKeyUp(int key, int x, int y)
 
 void myMouse(int x, int y)
 {
-	int prevX = (windowWidth / 2) - x;
-
-	angle += (float)prevX / 10.0;
+	int diffx = x - lastX; //check the difference between the current x and the last x position
+	lastX = x; //set lastx to the current x position
+	angle += (float)diffx;
 }
 
 /************************************************************************
