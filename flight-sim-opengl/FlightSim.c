@@ -42,6 +42,13 @@ GLint showWireFrame = 0;
 // toggle between grid and textures
 GLint showGrid, showTextures = 0;
 
+// toggle fog
+GLint showFog = 0;
+
+// set fog density and color
+GLfloat fogDensity = 0.1;
+GLfloat fogColor[4] = { 1.0, 1.0, 1.0, 1.0 };
+
 // plane vertices, normals and faces
 GLfloat planeVertices[6763][3]; planeNormals[6763][3];
 
@@ -65,7 +72,6 @@ int cessnaSizes[34];
 
 int cFaceSizes[3640];
 
-GLfloat lx = 0.0; GLfloat ly = 0.0;
 
 float angle = 0.0;
 
@@ -104,7 +110,10 @@ int skyImageWidth, skyImageHeight, landImageWidth, landImageHeight;
 // the image data
 GLubyte *skyImageData, *landImageData;
 
+// ids to swtich between textures
 GLuint skyTextureId, landTextureId;
+
+
 
 /************************************************************************
 
@@ -769,6 +778,14 @@ void drawSeaAndSky(GLUquadric *quad)
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 
+	if (showFog)
+	{
+		glEnable(GL_FOG);
+		glFogfv(GL_FOG_COLOR, fogColor);
+		glFogf(GL_FOG_MODE, GL_EXP);
+		glFogf(GL_FOG_DENSITY, fogDensity);
+	}
+
 	glColor3f(1.0, 1.0, 1.0);
 	// draw the disk
 	glBindTexture(GL_TEXTURE_2D, landTextureId);
@@ -778,6 +795,7 @@ void drawSeaAndSky(GLUquadric *quad)
 	gluDisk(quad, 0, 7.0, 100, 25);
 	glPopMatrix();
 
+	glDisable(GL_FOG);
 
 	// draw the cylinder
 	glBindTexture(GL_TEXTURE_2D, skyTextureId);
@@ -1068,7 +1086,18 @@ void myKey(unsigned char key, int x, int y)
 			showGrid = 1;
 		}
 		break;
+	case 'b':
+		if (showFog)
+		{
+			showFog = 0;
+		}
+		else
+		{
+			showFog = 1;
+		}
+		break;
 	}
+
 }
 
 /************************************************************************
