@@ -775,7 +775,7 @@ void drawSeaAndSky(GLUquadric *quad)
 	glPushMatrix();
 	glTranslatef(0.0, -1.0, 0.0);
 	glRotatef(90, 1.0, 0.0, 0.0);
-	gluDisk(quad, 1.0, 7.0, 100, 25);
+	gluDisk(quad, 0, 7.0, 100, 25);
 	glPopMatrix();
 
 
