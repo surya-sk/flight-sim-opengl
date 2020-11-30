@@ -13,6 +13,7 @@ Author:			Surya Kashyap
 #include <freeglut.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #pragma warning(disable:4996)
 
@@ -21,7 +22,7 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0, 0.0, 3.5 };
+GLfloat cameraPosition[] = { 0.0, 0.0, 0};
 
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
@@ -60,21 +61,27 @@ GLint numCVertices, numCNormals, numCFaces;
 FILE *fileStream;
 char fileText[100];
 
-int cessnaArray[34][700][30];
+// array top store values of cessna
+int cessnaArray[34][500][20];
 
 int propArray[2][500][30];
 
+// size of each object in propeller
 int propSizes[2];
 
+// size of each object in each face of cessna
 int pFaceSizes[131];
 
+// size of each object in cessna
 int cessnaSizes[34];
 
+// size of each object in propeller
 int cFaceSizes[3640];
 
-
+// angle to rotate camera
 float angle = 0.0;
 
+// variable to store last x position
 GLfloat lastX;
 
 //  position the light source at the origin 
@@ -112,6 +119,9 @@ GLubyte *skyImageData, *landImageData;
 
 // ids to swtich between textures
 GLuint skyTextureId, landTextureId;
+
+// mountain array
+GLfloat mountainArray[7][3];
 
 
 
@@ -727,7 +737,7 @@ void drawPlane()
 	glMaterialf(GL_FRONT, GL_SHININESS, highShininess);
 	glPushMatrix();
 
-	glTranslatef(cameraPosition[0], cameraPosition[1], cameraPosition[2] - 2.0);
+	glTranslatef(0, 0, -2.5);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
@@ -774,7 +784,6 @@ void drawSeaAndSky(GLUquadric *quad)
 	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteSpecular);
 	glMaterialf(GL_FRONT, GL_EMISSION, noShininess);
 
-	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 
 	if (showFog)
@@ -784,7 +793,6 @@ void drawSeaAndSky(GLUquadric *quad)
 		glFogf(GL_FOG_MODE, GL_EXP);
 		glFogf(GL_FOG_DENSITY, fogDensity);
 	}
-
 	glColor3f(1.0, 1.0, 1.0);
 	// draw the disk
 	glBindTexture(GL_TEXTURE_2D, landTextureId);
@@ -828,13 +836,26 @@ void myDisplay()
 
 	glLoadIdentity();
 
-	glRotatef(angle, 0.0, 1.0, 0.0);
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
-		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
+		cameraPosition[0] + sin((angle * 3.142) / 180), cameraPosition[1], cameraPosition[2] - cos((angle * 3.142)/180),
 		0, 1, 0);
 
+	// set the camera position
+	//gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
+	//	cameraPosition[0] + sin((angle * 3.142) / 180), cameraPosition[1], cameraPosition[2] - cos((angle * 3.142) / 180),
+	//	0, 1, 0);
+
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
+
+
+	if (showWireFrame)
+	{
+		glLineWidth(1.0);
+		glDisable(GL_TEXTURE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
 
 	// initialize quad
 	GLUquadric *quad;
@@ -858,12 +879,11 @@ void myDisplay()
 	}
 
 
-	glRotatef(-angle, 0.0, 0.0, 1.0);
-
+	glRotatef(-angle, 0.0, 1.0, 0.0);
 	drawPlane();
 
 	//drawPropeller();
-
+	 
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
 	glutSwapBuffers();
@@ -936,14 +956,6 @@ void determineMovement()
 	{
 		cameraPosition[1] -= interpDiff;
 	}
-	//if (moveForward)
-	//{
-	//	cameraPosition[2] -= interpDiff;
-	//}
-	//if (moveBackward)
-	//{
-	//	cameraPosition[2] += interpDiff;
-	//}
 	if (increaseSpeed)
 	{
 		interpDiff += 0.0002;
@@ -988,6 +1000,14 @@ void myKeyUp(int key, int x, int y)
 	}
 }
 
+/************************************************************************
+
+Function:		myMouse
+
+Description:	Handles mouse movement 
+
+
+*************************************************************************/
 void myMouse(int x, int y)
 {
 	int diffx = x - lastX; //check the difference between the current x and the last x position
@@ -1073,6 +1093,7 @@ void myKey(unsigned char key, int x, int y)
 			showWireFrame = 1;
 		}
 		break;
+	// toggle between grid and texture when s is pressed
 	case 's':
 		if (showGrid)
 		{
@@ -1085,6 +1106,7 @@ void myKey(unsigned char key, int x, int y)
 			showGrid = 1;
 		}
 		break;
+	// toggle fog on and off when b is pressed
 	case 'b':
 		if (showFog)
 		{
