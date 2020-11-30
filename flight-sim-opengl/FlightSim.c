@@ -727,7 +727,6 @@ void drawPlane()
 	glMaterialf(GL_FRONT, GL_SHININESS, highShininess);
 	glPushMatrix();
 
-	glRotatef(-angle, 0.0, 1.0, 0.0);
 	glTranslatef(cameraPosition[0], cameraPosition[1], cameraPosition[2] - 2.0);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
@@ -859,7 +858,7 @@ void myDisplay()
 	}
 
 
-
+	glRotatef(-angle, 0.0, 0.0, 1.0);
 
 	drawPlane();
 
