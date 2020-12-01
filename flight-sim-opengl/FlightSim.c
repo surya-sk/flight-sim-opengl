@@ -129,6 +129,9 @@ GLfloat mountainArray[7][3];
 // keep track of plane skins
 GLint firstSkin, secondSkin, thirdSkin = 0;
 
+// toggle weather
+GLint sunrise,sunset, night = 0;
+
 
 
 /************************************************************************
@@ -614,8 +617,9 @@ void initializeGL()
 
 	// set defaults
 	showTextures = 1;
-
 	firstSkin = 1;
+	sunrise = 1;
+
 }
 
 /************************************************************************
@@ -819,6 +823,7 @@ void drawSeaAndSky(GLUquadric *quad)
 
 	glEnable(GL_TEXTURE_2D);
 
+	
 	if (showFog)
 	{
 		glEnable(GL_FOG);
@@ -826,7 +831,20 @@ void drawSeaAndSky(GLUquadric *quad)
 		glFogf(GL_FOG_MODE, GL_EXP);
 		glFogf(GL_FOG_DENSITY, fogDensity);
 	}
-	glColor3f(1.0, 1.0, 1.0);
+	
+	if (sunrise)
+	{
+		glColor3f(1.0, 1.0, 1.0);
+	}
+	else if (sunset)
+	{
+		glColor3f(1.0, 0.0, 0.5);
+	}
+	else if (night)
+	{
+		glColor3f(0.0, 0.0, 0.5);
+	}
+
 	// draw the disk
 	glBindTexture(GL_TEXTURE_2D, landTextureId);
 	glPushMatrix();
@@ -836,7 +854,19 @@ void drawSeaAndSky(GLUquadric *quad)
 	glPopMatrix();
 
 	glDisable(GL_FOG);
-
+	
+	if (sunrise)
+	{
+		glColor3f(1.0, 1.0, 1.0);
+	}
+	else if (sunset)
+	{
+		glColor3f(1.0, 0.0, 1.0);
+	}
+	else if (night)
+	{
+		glColor3f(0.1, 0.5, 1.0);
+	}
 	// draw the cylinder
 	glBindTexture(GL_TEXTURE_2D, skyTextureId);
 	glPushMatrix();
@@ -1180,6 +1210,32 @@ void myKey(unsigned char key, int x, int y)
 		{
 			thirdSkin = 1;
 			firstSkin = secondSkin = 0;
+		}
+		break;
+	// select time of day
+	case '7':
+		if (sunrise)
+		{
+			sunrise;
+		}
+		else
+		{
+			sunrise = 1;
+			sunset = night = 0;
+		}
+		break;
+	case '8':
+		if (sunset == 0)
+		{
+			sunset = 1;
+			sunrise = night = 0;
+		}
+		break;
+	case '9':
+		if (night == 0)
+		{
+			night = 1;
+			sunrise = sunset = 0;
 		}
 		break;
 	}
