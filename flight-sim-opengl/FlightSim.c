@@ -598,7 +598,7 @@ void initializeGL()
 	// enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
-
+	// read texture and data files
 	readCessnaFile();
 
 	//readPropellerFile();
@@ -607,10 +607,12 @@ void initializeGL()
 
 	loadILandmage();
 
+	// create textures
 	createLandTexture();
 	
 	createSkyTexture();
 
+	// set defaults
 	showTextures = 1;
 
 	firstSkin = 1;
