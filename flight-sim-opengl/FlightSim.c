@@ -27,6 +27,9 @@ GLfloat cameraPosition[] = { 0.0, 0.0, 0};
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
 
+// speed at which the camera moves
+GLfloat speed = 0;
+
 // determine direction to move the camera in
 GLint moveUp, moveDown, moveRight, moveLeft, moveForward, moveBackward, increaseSpeed, decreaseSpeed = 0;
 
@@ -122,6 +125,9 @@ GLuint skyTextureId, landTextureId;
 
 // mountain array
 GLfloat mountainArray[7][3];
+
+// keep track of plane skins
+GLint firstSkin, secondSkin, thirdSkin = 0;
 
 
 
@@ -606,6 +612,8 @@ void initializeGL()
 	createSkyTexture();
 
 	showTextures = 1;
+
+	firstSkin = 1;
 }
 
 /************************************************************************
@@ -731,13 +739,13 @@ Description : Draws the plane from the cessna.txt file
 void drawPlane()
 {
 	glDisable(GL_LIGHTING);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, blueDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteSpecular);
-	glMaterialf(GL_FRONT, GL_SHININESS, highShininess);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, zeroMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, blueDiffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, whiteSpecular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, highShininess);
 	glPushMatrix();
 
-	glTranslatef(0, 0, -2.5);
+	glTranslatef(0, 0,  -2.5);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
@@ -749,13 +757,36 @@ void drawPlane()
 			for (int k = 0; k < cFaceSizes[count]; k++)
 			{
 				int row = cessnaArray[i][j][k];
-				if (i > 0 && i < 5) glColor3f(1.0, 1.0, 0.0);
-				if (i > 4 && i < 7) glColor3f(0.0, 0.0, 0.0);
-				if (i == 7) glColor3f(1.0, 0.0, 1.0);
-				if (i == 8) glColor3f(0.0, 0.0, 1.0);
-				if (i > 8 && i < 15) glColor3f(1.0, 1.0, 0.0);
-				if (i > 14 && i < 27) glColor3f(0.0, 0.0, 1.0);
-				if (i > 26 && i < 34) glColor3f(1.0, 1.0, 0.0);
+				if (firstSkin)
+				{
+					if (i > 0 && i < 5) glColor3f(1.0, 1.0, 0.0);
+					if (i > 4 && i < 7) glColor3f(0.0, 0.0, 0.0);
+					if (i == 7) glColor3f(1.0, 0.0, 1.0);
+					if (i == 8) glColor3f(0.0, 0.0, 1.0);
+					if (i > 8 && i < 15) glColor3f(1.0, 1.0, 0.0);
+					if (i > 14 && i < 27) glColor3f(0.0, 0.0, 1.0);
+					if (i > 26 && i < 34) glColor3f(1.0, 1.0, 0.0);
+				}
+				else if (secondSkin)
+				{
+					if (i > 0 && i < 5) glColor3f(1.0, 0.5, 0.0);
+					if (i > 4 && i < 7) glColor3f(0.0, 0.0, 0.0);
+					if (i == 7) glColor3f(0.0, 0.1, 0.0);
+					if (i == 8) glColor3f(0.0, 0.5, 1.0);
+					if (i > 8 && i < 15) glColor3f(1.0, 0.5, 0.0);
+					if (i > 14 && i < 27) glColor3f(0.0, 0.5, 1.0);
+					if (i > 26 && i < 34) glColor3f(1.0, 0.5, 0.0);
+				}
+				else if (thirdSkin)
+				{
+					if (i > 0 && i < 5) glColor3f(0.5, 1.0, 1.0);
+					if (i > 4 && i < 7) glColor3f(0.0, 0.0, 0.0);
+					if (i == 7) glColor3f(0.5, 1.0, 1.0);
+					if (i == 8) glColor3f(1.0, 0.0, 0.0);
+					if (i > 8 && i < 15) glColor3f(0.5, 1.0, 1.0);
+					if (i > 14 && i < 27) glColor3f(1.0, 0.0, 0.0);
+					if (i > 26 && i < 34) glColor3f(0.5, 1.0, 1.0);
+				}
 				glNormal3f(planeNormals[row - 1][0], planeNormals[row - 1][1], planeNormals[row - 1][2]);
 				glVertex3f(planeVertices[row - 1][0], planeVertices[row - 1][1], planeVertices[row - 1][2]);
 
@@ -779,10 +810,10 @@ Description : Draws the sea and sky with textures
 *************************************************************************/
 void drawSeaAndSky(GLUquadric *quad)
 {
-	glMaterialfv(GL_FRONT, GL_AMBIENT, zeroMaterial);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, redDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, whiteSpecular);
-	glMaterialf(GL_FRONT, GL_EMISSION, noShininess);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, zeroMaterial);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, redDiffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, whiteSpecular);
+	glMaterialf(GL_FRONT_AND_BACK, GL_EMISSION, noShininess);
 
 	glEnable(GL_TEXTURE_2D);
 
@@ -836,9 +867,10 @@ void myDisplay()
 
 	glLoadIdentity();
 
+	glRotatef(angle, 0, 1, 0);
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
-		cameraPosition[0] + sin((angle * 3.142) / 180), cameraPosition[1], cameraPosition[2] - cos((angle * 3.142)/180),
+		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
 		0, 1, 0);
 
 	// set the camera position
@@ -855,6 +887,11 @@ void myDisplay()
 		glLineWidth(1.0);
 		glDisable(GL_TEXTURE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else
+	{
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	// initialize quad
@@ -938,7 +975,7 @@ Description:	 Determines movement based on key presses
 *************************************************************************/
 void determineMovement()
 {
-	//cameraPosition[2] -= interpDiff;
+	//cameraPosition[2] -= interpDiff + speed;
 	// map camera movement to keys
 	if (moveRight)
 	{
@@ -958,15 +995,15 @@ void determineMovement()
 	}
 	if (increaseSpeed)
 	{
-		interpDiff += 0.0002;
+		speed += 0.0002;
 		increaseSpeed = 0;
 	}
 	if (decreaseSpeed)
 	{
-		interpDiff -= 0.0002;
-		if (interpDiff < 0)
+		speed -= 0.0002;
+		if (speed < 0)
 		{
-			interpDiff = 0;
+			speed = 0;
 		}
 	}
 }
@@ -1117,7 +1154,34 @@ void myKey(unsigned char key, int x, int y)
 			showFog = 1;
 		}
 		break;
+	// select plane colors
+	case '1':
+		if (firstSkin)
+		{
+			firstSkin;
+		}
+		else
+		{
+			firstSkin = 1;
+			secondSkin = thirdSkin = 0;
+		}
+		break;
+	case '2':
+		if (secondSkin == 0)
+		{
+			secondSkin = 1;
+			firstSkin = thirdSkin = 0;
+		}
+		break;
+	case '3':
+		if (thirdSkin == 0)
+		{
+			thirdSkin = 1;
+			firstSkin = secondSkin = 0;
+		}
+		break;
 	}
+
 
 }
 
