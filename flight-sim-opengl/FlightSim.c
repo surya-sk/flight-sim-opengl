@@ -50,7 +50,7 @@ GLint showGrid, showTextures = 0;
 GLint showFog = 0;
 
 // set fog density and color
-GLfloat fogDensity = 0.1;
+GLfloat fogDensity = 0.05;
 GLfloat fogColor[4] = { 1.0, 1.0, 1.0, 1.0 };
 
 // plane vertices, normals and faces
@@ -823,7 +823,7 @@ void drawSeaAndSky(GLUquadric *quad)
 
 	glEnable(GL_TEXTURE_2D);
 
-	
+	// toggle fog on or off
 	if (showFog)
 	{
 		glEnable(GL_FOG);
