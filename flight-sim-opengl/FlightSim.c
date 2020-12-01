@@ -751,7 +751,7 @@ void drawPlane()
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, highShininess);
 	glPushMatrix();
 
-	glTranslatef(0, 0,  -2.5);
+	glTranslatef(0, cameraPosition[1],  -2.5);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
