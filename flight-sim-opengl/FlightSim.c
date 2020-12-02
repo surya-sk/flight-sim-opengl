@@ -997,7 +997,10 @@ void myDisplay()
 
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-	startSnowing();
+	if (startSnow)
+	{
+		startSnowing();
+	}
 
 	if (showWireFrame)
 	{
@@ -1191,10 +1194,14 @@ void myIdle()
 	}
 	determineMovement();
 
-	for (int i = 0; i < SNOW_NUM; i++)
+	if (startSnow)
 	{
-		snowPosY[i] -= 0.002;
+		for (int i = 0; i < SNOW_NUM; i++)
+		{
+			snowPosY[i] -= 0.002;
+		}
 	}
+
 
 	glutPostRedisplay();
 }
@@ -1304,6 +1311,41 @@ void myKey(unsigned char key, int x, int y)
 			firstSkin = secondSkin = 0;
 		}
 		break;
+	// select weather
+	case '4':
+		if (startRain == 0)
+		{
+			startRain = 1;
+			startMist = startSnow = 0;
+		}
+		else
+		{
+			startRain = 0;
+		}
+		break;
+	case '5':
+		if (startSnow == 0)
+		{
+			startSnow = 1;
+			startRain = startMist = 0;
+		}
+		else
+		{
+			startSnow = 0;
+		}
+		break;
+	case '6':
+		if (startMist == 0)
+		{
+			startMist = 1;
+			startSnow = startRain = 0;
+		}
+		else
+		{
+			startMist = 0;
+		}
+		break;
+
 	// select time of day
 	case '7':
 		if (sunrise)
