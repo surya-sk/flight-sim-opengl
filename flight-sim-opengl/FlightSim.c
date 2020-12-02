@@ -152,6 +152,10 @@ GLfloat rainPosX[SNOW_NUM], rainPosY[SNOW_NUM], rainPosZ[SNOW_NUM];
 // sizes of the snow particles
 GLfloat snowSize[SNOW_NUM];
 
+// density and color for mist
+GLfloat mistDensity = 0.1;
+GLfloat mistColor[4] = { 0.3,0.3,0.3,1.0 };
+
 
 
 /************************************************************************
@@ -934,6 +938,15 @@ void drawSeaAndSky(GLUquadric *quad)
 	{
 		glColor3f(0.1, 0.5, 1.0);
 	}
+
+	if (startMist)
+	{
+		glEnable(GL_FOG);
+		glFogfv(GL_FOG_COLOR, mistColor);
+		glFogf(GL_FOG_MODE, GL_EXP);
+		glFogf(GL_FOG_DENSITY, mistDensity);
+	}
+
 	// draw the cylinder
 	glBindTexture(GL_TEXTURE_2D, skyTextureId);
 	glPushMatrix();
@@ -941,6 +954,7 @@ void drawSeaAndSky(GLUquadric *quad)
 	glRotatef(-90.0, 1, 0, 0);
 	gluCylinder(quad, 6.0, 5.5, 7, 100, 25);
 	glPopMatrix();
+	glDisable(GL_FOG);
 
 	glDisable(GL_TEXTURE_2D);
 }
