@@ -1241,7 +1241,7 @@ void myIdle()
 	}
 	determineMovement();
 
-
+	// make snow and rain "fall"
 	for (int i = 0; i < SNOW_NUM; i++)
 	{
 		if (startSnow)
@@ -1256,8 +1256,6 @@ void myIdle()
 
 
 	}
-	
-
 
 	glutPostRedisplay();
 }
