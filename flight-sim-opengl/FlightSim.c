@@ -14,8 +14,11 @@ Author:			Surya Kashyap
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #pragma warning(disable:4996)
+
+#define TO_RADIANS 3.14/180.0
 
 // window dimensions
 GLint windowHeight = 600;
@@ -132,6 +135,11 @@ GLint firstSkin, secondSkin, thirdSkin = 0;
 // toggle weather
 GLint sunrise,sunset, night = 0;
 
+// handle rain and snow
+GLint startRain, startSnow = 0;
+
+// keep track of camera positions
+GLfloat camX, camZ = 0.0;
 
 
 /************************************************************************
@@ -543,6 +551,22 @@ void createSkyTexture()
 /************************************************************************
 
 
+Function:		getRandomFloat
+
+
+Description:	Generates a random float between min and max
+
+
+*************************************************************************/
+float getRandomFloat(float min, float max)
+{
+	float scale = rand() / (float)RAND_MAX; /* [0, 1.0] */
+	return min + scale * (max - min);      /* [min, max] */
+}
+
+/************************************************************************
+
+
 Function:		initializeGL
 
 
@@ -612,13 +636,14 @@ void initializeGL()
 
 	// create textures
 	createLandTexture();
-	
 	createSkyTexture();
 
 	// set defaults
 	showTextures = 1;
 	firstSkin = 1;
 	sunrise = 1;
+
+	srand(time(0));
 
 }
 
@@ -899,7 +924,11 @@ void myDisplay()
 
 	glLoadIdentity();
 
+	camX += cos((angle + 90) * TO_RADIANS) ;
+	camZ -= sin((angle + 90)* TO_RADIANS) ;
+
 	glRotatef(angle, 0, 1, 0);
+	//glTranslatef(-camX, 0.0, -camZ);
 	// set the camera position
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
 		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
@@ -922,7 +951,6 @@ void myDisplay()
 	}
 	else
 	{
-
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
@@ -1008,6 +1036,7 @@ Description:	 Determines movement based on key presses
 void determineMovement()
 {
 	//cameraPosition[2] -= interpDiff + speed;
+
 	// map camera movement to keys
 	if (moveRight)
 	{
