@@ -20,6 +20,8 @@ Author:			Surya Kashyap
 
 #define TO_RADIANS 3.14/180.0
 
+#define SNOW_NUM 10000
+
 // window dimensions
 GLint windowHeight = 600;
 GLint windowWidth = 600;
@@ -136,13 +138,17 @@ GLint firstSkin, secondSkin, thirdSkin = 0;
 GLint sunrise,sunset, night = 0;
 
 // handle rain and snow
-GLint startRain, startSnow = 0;
+GLint startRain, startSnow , startMist = 0;
 
 // keep track of camera positions
 GLfloat camX, camZ = 0.0;
 
-// start position for stars
-GLfloat startPos = 0;
+// position of snow
+GLfloat snowPosX[SNOW_NUM], snowPosY[SNOW_NUM], snowPosZ[SNOW_NUM];
+
+// sizes of the snow particles
+GLfloat snowSize[SNOW_NUM];
+
 
 
 /************************************************************************
@@ -595,6 +601,8 @@ Function:		initializeGL
 *************************************************************************/
 void initializeGL()
 {
+	srand(time(0));
+
 	// define the light color and intensity
 	GLfloat ambientLight[] = { 0.0, 0.0, 0.0, 1.0 };  // relying on global ambient
 	GLfloat diffuseLight[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -662,7 +670,15 @@ void initializeGL()
 	firstSkin = 1;
 	sunrise = 1;
 
-	srand(time(0));
+	// initialize snow positions
+	for (int i = 0; i < SNOW_NUM; i++)
+	{
+		snowPosX[i] = getRandomFloat(-10.0, 10.0);
+		snowPosY[i] = getRandomFloat(2.0, 20.3);
+		snowPosZ[i] = getRandomFloat(7.0,-7.0);
+		snowSize[i] = getRandomFloat(3.0, 5.0);
+	}
+
 
 }
 
@@ -925,6 +941,27 @@ void drawSeaAndSky(GLUquadric *quad)
 /************************************************************************
 
 
+Function:		startSnowing
+
+
+Description:	Starts the snow
+
+
+*************************************************************************/
+void startSnowing()
+{
+	for (int i = 0; i < SNOW_NUM; i++)
+	{
+		glColor3f(1.0, 1.0, 1.0);
+		glPointSize(snowSize[i]);
+		glBegin(GL_POINTS);
+		glVertex3f(snowPosX[i], snowPosY[i], snowPosZ[i]);
+		glEnd();
+	}
+}
+/************************************************************************
+
+
 Function:		myDisplay
 
 
@@ -960,7 +997,7 @@ void myDisplay()
 
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-
+	startSnowing();
 
 	if (showWireFrame)
 	{
@@ -972,6 +1009,8 @@ void myDisplay()
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
+
+
 
 	// initialize quad
 	GLUquadric *quad;
@@ -1151,6 +1190,11 @@ void myIdle()
 		glutLeaveFullScreen();
 	}
 	determineMovement();
+
+	for (int i = 0; i < SNOW_NUM; i++)
+	{
+		snowPosY[i] -= 0.002;
+	}
 
 	glutPostRedisplay();
 }
