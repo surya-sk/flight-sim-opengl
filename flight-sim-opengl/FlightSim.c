@@ -146,6 +146,9 @@ GLfloat camX, camZ = 0.0;
 // position of snow
 GLfloat snowPosX[SNOW_NUM], snowPosY[SNOW_NUM], snowPosZ[SNOW_NUM];
 
+// position of rain
+GLfloat rainPosX[SNOW_NUM], rainPosY[SNOW_NUM], rainPosZ[SNOW_NUM];
+
 // sizes of the snow particles
 GLfloat snowSize[SNOW_NUM];
 
@@ -670,13 +673,17 @@ void initializeGL()
 	firstSkin = 1;
 	sunrise = 1;
 
-	// initialize snow positions
+	// initialize snow and rain positions
 	for (int i = 0; i < SNOW_NUM; i++)
 	{
 		snowPosX[i] = getRandomFloat(-10.0, 10.0);
 		snowPosY[i] = getRandomFloat(2.0, 20.3);
 		snowPosZ[i] = getRandomFloat(7.0,-7.0);
 		snowSize[i] = getRandomFloat(3.0, 5.0);
+		rainPosX[i] = getRandomFloat(-10.0, 10.0);
+		rainPosY[i] = getRandomFloat(2.0, 20.3);
+		rainPosZ[i] = getRandomFloat(7.0, -7.0);
+		
 	}
 
 
@@ -959,6 +966,29 @@ void startSnowing()
 		glEnd();
 	}
 }
+
+/************************************************************************
+
+
+Function:		startRaining
+
+
+Description:	Starts the rain
+
+
+*************************************************************************/
+void startRaining()
+{
+	for (int i = 0; i < SNOW_NUM; i++)
+	{
+		glColor3f(1.0, 1.0, 1.0);
+		glBegin(GL_LINES);
+		glVertex3f(rainPosX[i], rainPosY[i], rainPosZ[i]);
+		glVertex3f(rainPosX[i], rainPosY[i]+0.1, rainPosZ[i]);
+		glEnd();
+	}
+}
+
 /************************************************************************
 
 
@@ -1000,6 +1030,11 @@ void myDisplay()
 	if (startSnow)
 	{
 		startSnowing();
+	}
+
+	if (startRain)
+	{
+		startRaining();
 	}
 
 	if (showWireFrame)
@@ -1099,14 +1134,6 @@ void determineMovement()
 	//cameraPosition[2] -= interpDiff + speed;
 
 	// map camera movement to keys
-	if (moveRight)
-	{
-		cameraPosition[0] += interpDiff;
-	}
-	if (moveLeft)
-	{
-		cameraPosition[0] -= interpDiff;
-	}
 	if (moveUp)
 	{
 		cameraPosition[1] += interpDiff;
@@ -1194,13 +1221,22 @@ void myIdle()
 	}
 	determineMovement();
 
-	if (startSnow)
+
+	for (int i = 0; i < SNOW_NUM; i++)
 	{
-		for (int i = 0; i < SNOW_NUM; i++)
+		if (startSnow)
 		{
 			snowPosY[i] -= 0.002;
 		}
+
+		if (startRain)
+		{
+			rainPosY[i] -= 0.002;
+		}
+
+
 	}
+	
 
 
 	glutPostRedisplay();
