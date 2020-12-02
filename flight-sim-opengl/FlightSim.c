@@ -897,7 +897,7 @@ void drawSeaAndSky(GLUquadric *quad)
 	glPushMatrix();
 	glTranslatef(0.0, -1.1, 0.0);
 	glRotatef(-90.0, 1, 0, 0);
-	gluCylinder(quad, 6.0, 5.5, 5, 15, 5);
+	gluCylinder(quad, 6.0, 5.5, 7, 100, 25);
 	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);
