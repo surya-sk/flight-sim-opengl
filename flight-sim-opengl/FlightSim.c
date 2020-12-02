@@ -141,6 +141,9 @@ GLint startRain, startSnow = 0;
 // keep track of camera positions
 GLfloat camX, camZ = 0.0;
 
+// start position for stars
+GLfloat startPos = 0;
+
 
 /************************************************************************
 
@@ -562,6 +565,22 @@ float getRandomFloat(float min, float max)
 {
 	float scale = rand() / (float)RAND_MAX; /* [0, 1.0] */
 	return min + scale * (max - min);      /* [min, max] */
+}
+
+/************************************************************************
+
+
+Function:		getRandomNumber
+
+
+Description:	Generates a random number from min to max
+
+
+*************************************************************************/
+int getRandomNumber(int min, int max)
+{
+	int num = (rand() % (max - min + 1) + min);
+	return num;
 }
 
 /************************************************************************
