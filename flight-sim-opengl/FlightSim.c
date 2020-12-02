@@ -979,14 +979,20 @@ Description:	Starts the rain
 *************************************************************************/
 void startRaining()
 {
+	glEnable(GL_BLEND);
+
+	//set the blending mode
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	for (int i = 0; i < SNOW_NUM; i++)
 	{
-		glColor3f(1.0, 1.0, 1.0);
+		glColor4f(1.0, 1.0, 1.0, 1.0);
 		glBegin(GL_LINES);
 		glVertex3f(rainPosX[i], rainPosY[i], rainPosZ[i]);
 		glVertex3f(rainPosX[i], rainPosY[i]+0.1, rainPosZ[i]);
 		glEnd();
 	}
+	glDisable(GL_BLEND);
 }
 
 /************************************************************************
