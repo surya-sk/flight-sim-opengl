@@ -27,7 +27,7 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0, 0.0, 0};
+GLfloat cameraPosition[] = { 0.0, 0.0, 2.5};
 
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
@@ -51,6 +51,9 @@ GLint showWireFrame = 0;
 // toggle between grid and textures
 GLint showGrid, showTextures = 0;
 
+// toggle mountains and their textures
+GLint showMount, showMountTextures = 0;
+
 // toggle fog
 GLint showFog = 0;
 
@@ -63,7 +66,6 @@ GLfloat planeVertices[6763][3]; planeNormals[6763][3];
 
 // number of vertices, normals and faces
 GLint numCVertices, numCNormals, numCFaces;
-
 
 // file stream to access directory 
 FILE *fileStream;
@@ -120,16 +122,13 @@ GLfloat highShininess = 100.0;
 int cl = 0, pl = 0;
 
 // image size
-int skyImageWidth, skyImageHeight, landImageWidth, landImageHeight;
+int skyImageWidth, skyImageHeight, landImageWidth, landImageHeight, mountImageWidth, mountImageHeight;
 
 // the image data
-GLubyte *skyImageData, *landImageData;
+GLubyte *skyImageData, *landImageData, *mountImageData;
 
 // ids to swtich between textures
-GLuint skyTextureId, landTextureId;
-
-// mountain array
-GLfloat mountainArray[7][3];
+GLuint skyTextureId, landTextureId, mountTextureId;
 
 // keep track of plane skins
 GLint firstSkin, secondSkin, thirdSkin = 0;
@@ -155,6 +154,12 @@ GLfloat snowSize[SNOW_NUM];
 // density and color for mist
 GLfloat mistDensity = 0.1;
 GLfloat mistColor[4] = { 0.3,0.3,0.3,1.0 };
+
+GLfloat theta = 0.0;
+
+// island scales and colors
+GLfloat i1Scales[3], i2Scales[3], i3Scales[3];
+GLfloat level1Colors[3], level2Colors[3];
 
 
 
@@ -418,7 +423,7 @@ void loadSkyImage()
 	Description:	Loads in the PPM image
 
 *************************************************************************/
-void loadILandmage()
+void loadILandImage()
 {
 	// maxValue
 	int  maxValue;
@@ -528,6 +533,120 @@ void loadILandmage()
 
 /************************************************************************
 
+	Function:		loadMountImage
+
+	Description:	Loads in the PPM image
+
+*************************************************************************/
+void loadMountImage()
+{
+	// maxValue
+	int  maxValue;
+
+	// total number of pixels in the image
+	int  totalPixels;
+
+	// temporary character
+	char tempChar;
+
+	// counter variable for the current pixel in the image
+	int i;
+
+	// array for reading in header information
+	char headerLine[100];
+
+	// if the original values are larger than 255
+	float RGBScaling;
+
+	// temporary variables for reading in the red, green and blue data of each pixel
+	int red, green, blue;
+
+	// open the image file for reading
+	fileStream = fopen("mount03.ppm", "r");
+
+	// read in the first header line
+	//    - "%[^\n]"  matches a string of all characters not equal to the new line character ('\n')
+	//    - so we are just reading everything up to the first line break
+	fscanf(fileStream, "%[^\n] ", headerLine);
+
+	// make sure that the image begins with 'P3', which signifies a PPM file
+	if ((headerLine[0] != 'P') || (headerLine[1] != '3'))
+	{
+		printf("This is not a PPM file!\n");
+		exit(0);
+	}
+
+	// read in the first character of the next line
+	fscanf(fileStream, "%c", &tempChar);
+
+	// while we still have comment lines (which begin with #)
+	while (tempChar == '#')
+	{
+		// read in the comment
+		fscanf(fileStream, "%[^\n] ", headerLine);
+
+		// print the comment
+		//printf("%s\n", headerLine);
+
+		// read in the first character of the next line
+		fscanf(fileStream, "%c", &tempChar);
+	}
+
+	// the last one was not a comment character '#', so we need to put it back into the file stream (undo)
+	ungetc(tempChar, fileStream);
+
+	// read in the image hieght, width and the maximum value
+	fscanf(fileStream, "%d %d %d", &mountImageWidth, &mountImageHeight, &maxValue);
+
+	// print out the information about the image file
+	//printf("%d rows  %d columns  max value= %d\n", landImageHeight, landImageWidth, maxValue);
+
+	// compute the total number of pixels in the image
+	totalPixels = mountImageWidth * mountImageHeight;
+
+	// allocate enough memory for the image  (3*) because of the RGB data
+	mountImageData = malloc(3 * sizeof(GLuint) * totalPixels);
+
+
+	// determine the scaling for RGB values
+	RGBScaling = 255.0 / maxValue;
+
+
+	// if the maxValue is 255 then we do not need to scale the 
+	//    image data values to be in the range or 0 to 255
+	if (maxValue == 255)
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileStream, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			mountImageData[3 * totalPixels - 3 * i - 3] = red;
+			mountImageData[3 * totalPixels - 3 * i - 2] = green;
+			mountImageData[3 * totalPixels - 3 * i - 1] = blue;
+		}
+	}
+	else  // need to scale up the data values
+	{
+		for (i = 0; i < totalPixels; i++)
+		{
+			// read in the current pixel from the file
+			fscanf(fileStream, "%d %d %d", &red, &green, &blue);
+
+			// store the red, green and blue data of the current pixel in the data array
+			mountImageData[3 * totalPixels - 3 * i - 3] = red * RGBScaling;
+			mountImageData[3 * totalPixels - 3 * i - 2] = green * RGBScaling;
+			mountImageData[3 * totalPixels - 3 * i - 1] = blue * RGBScaling;
+		}
+	}
+
+
+	// close the image file
+	fclose(fileStream);
+}
+/************************************************************************
+
 	Function:		createLandTexture
 
 	Description:	Creates texture for the land
@@ -562,6 +681,25 @@ void createSkyTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, skyImageWidth, skyImageHeight, GL_RGB, GL_UNSIGNED_BYTE, skyImageData);
+}
+
+/************************************************************************
+
+	Function:		createMountTexture
+
+	Description:	Creates texture for the islands
+
+*************************************************************************/
+void createMountTexture()
+{
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &mountTextureId);
+	glBindTexture(GL_TEXTURE_2D, mountTextureId);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, mountImageWidth, mountImageHeight, GL_RGB, GL_UNSIGNED_BYTE, mountImageData);
 }
 
 /************************************************************************
@@ -666,11 +804,22 @@ void initializeGL()
 
 	loadSkyImage();
 
-	loadILandmage();
+	loadILandImage();
+
+	loadMountImage();
+
+	// initiliaze island scales and colors
+	i1Scales[0] = getRandomFloat(0.9, 2.0); i1Scales[1] = getRandomFloat(0.3, 0.8); i1Scales[3] = getRandomFloat(1.0, 3.0);
+	i2Scales[0] = getRandomFloat(0.9, 2.0); i2Scales[1] = getRandomFloat(0.3, 0.8); i2Scales[3] = getRandomFloat(0.6, 1.6);
+	i3Scales[0] = getRandomFloat(0.9, 2.0); i3Scales[1] = getRandomFloat(0.3, 0.8); i3Scales[3] = getRandomFloat(0.6, 1.6);
+
+	level1Colors[0] = 0; level1Colors[1] = getRandomFloat(0.7, 1.0); level1Colors[2] = 0;
+	level2Colors[0] = getRandomFloat(0.7, 1.0); level2Colors[1] = getRandomFloat(0.7, 1.0); level2Colors[2] = getRandomFloat(0.7, 1.0);
 
 	// create textures
 	createLandTexture();
 	createSkyTexture();
+	createMountTexture();
 
 	// set defaults
 	showTextures = 1;
@@ -687,9 +836,7 @@ void initializeGL()
 		rainPosX[i] = getRandomFloat(-10.0, 10.0);
 		rainPosY[i] = getRandomFloat(2.0, 20.3);
 		rainPosZ[i] = getRandomFloat(7.0, -7.0);
-		
 	}
-
 
 }
 
@@ -781,6 +928,7 @@ Description : Draws the plane from the propeller.txt file
 *************************************************************************/
 void drawPropeller()
 {
+	glPushMatrix();
 	int count = 0;
 	for (int i = 1; i < 3; i++)
 	{
@@ -800,8 +948,73 @@ void drawPropeller()
 			count++;
 		}
 	}
+	glPopMatrix();
 }
 
+void drawIsland(GLUquadric* quad)
+{
+	glPushMatrix();
+	if(showMountTextures)
+	glEnable(GL_TEXTURE_2D);
+
+	glColor3f(1, 1, 1);
+	glBindTexture(GL_TEXTURE_2D, mountTextureId);
+	// pyramid
+	glBegin(GL_TRIANGLES);
+	if(!showMountTextures)
+	glColor3f(level2Colors[0], level2Colors[1], level2Colors[2]);
+	glTexCoord2f(0, 0);
+	glVertex3f(0.0, 1.0, 0.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(-1.0, -1.0, 1.0);
+	glVertex3f(1.0, -1.0, 1.0);
+
+	glTexCoord2f(1, 0);
+	if (!showMountTextures)
+	glColor3f(level2Colors[0], level2Colors[1], level2Colors[2]);
+	glVertex3f(0.0, 1.0, 0.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(-1.0, -1.0, 1.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(0.0, -1.0, -1.0);
+
+	glTexCoord2f(1, 1);
+	if (!showMountTextures)
+	glColor3f(level2Colors[0], level2Colors[1], level2Colors[2]);
+	glVertex3f(0.0, 1.0, 0.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(0.0, -1.0, -1.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(1.0, -1.0, 1.0);
+
+	glTexCoord2f(0, 1);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(-1.0, -1.0, 1.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(0.0, -1.0, -1.0);
+	if (!showMountTextures)
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(1.0, -1.0, 1.0);
+	glEnd();
+
+	glBegin(GL_QUADS);
+	glColor3f(level1Colors[0], level1Colors[1], level1Colors[2]);
+	glVertex3f(1.0, -1.0, 1.0);
+	glVertex3f(0.0, -1.0, -1.0);
+	glVertex3f(1.0, -1.0, 1.0);
+	glVertex3f(1.0, -1.0, 1.0);
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+}
 
 /************************************************************************
 
@@ -821,6 +1034,7 @@ void drawPlane()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, whiteSpecular);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, highShininess);
 	glPushMatrix();
+
 
 	glTranslatef(0, cameraPosition[1],  -2.5);
 	glScalef(0.5, 0.5, 0.5);
@@ -872,6 +1086,9 @@ void drawPlane()
 			count++;
 		}
 	}
+	drawPropeller();
+	glTranslatef(0, 0, -0.7);
+	drawPropeller();
 	glPopMatrix();
 }
 
@@ -959,6 +1176,8 @@ void drawSeaAndSky(GLUquadric *quad)
 	glDisable(GL_TEXTURE_2D);
 }
 
+
+
 /************************************************************************
 
 
@@ -1008,6 +1227,8 @@ void startRaining()
 	}
 	glDisable(GL_BLEND);
 }
+
+
 
 /************************************************************************
 
@@ -1081,6 +1302,27 @@ void myDisplay()
 	{
 		// draw the sea and the sky
 		drawSeaAndSky(quad);
+
+		if (showMount)
+		{
+			glPushMatrix();
+			glTranslatef(-0.7, -0.789, 0.0);
+			glScalef(i1Scales[0], i1Scales[1], i1Scales[2]);
+			drawIsland(quad);
+			glPopMatrix();
+
+			glPushMatrix();
+			glTranslatef(1.7, -0.789, -2.0);
+			glScalef(i2Scales[0], i2Scales[1], i2Scales[2]);
+			drawIsland(quad);
+			glPopMatrix();
+
+			glPushMatrix();
+			glTranslatef(1.7, -0.789, 2.0);
+			glScalef(i3Scales[0], i3Scales[1], i3Scales[2]);
+			drawIsland(quad);
+			glPopMatrix();
+		}
 	}
 	
 	if (showGrid)
@@ -1092,10 +1334,12 @@ void myDisplay()
 	}
 
 
+
+	glPushMatrix();
 	glRotatef(-angle, 0.0, 1.0, 0.0);
 	drawPlane();
+	glPopMatrix();
 
-	//drawPropeller();
 	 
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
@@ -1253,10 +1497,8 @@ void myIdle()
 		{
 			rainPosY[i] -= 0.002;
 		}
-
-
 	}
-
+	theta += 0.02;
 	glutPostRedisplay();
 }
 
@@ -1337,6 +1579,27 @@ void myKey(unsigned char key, int x, int y)
 		else
 		{
 			showFog = 1;
+		}
+		break;
+	// toggle mountain and mountain textures
+	case 'm':
+		if (showMount)
+		{
+			showMount = 0;
+		}
+		else
+		{
+			showMount = 1;
+		}
+		break;
+	case 't':
+		if (showMountTextures)
+		{
+			showMountTextures = 0;
+		}
+		else
+		{
+			showMountTextures = 1;
 		}
 		break;
 	// select plane colors
