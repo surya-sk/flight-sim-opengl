@@ -72,10 +72,10 @@ char fileText[100];
 // array top store values of cessna
 int cessnaArray[34][500][20];
 
-int propArray[2][500][30];
+int propArray[3][500][30];
 
 // size of each object in propeller
-int propSizes[2];
+int propSizes[3];
 
 // size of each object in each face of cessna
 int pFaceSizes[131];
@@ -662,7 +662,7 @@ void initializeGL()
 	// read texture and data files
 	readCessnaFile();
 
-	//readPropellerFile();
+	readPropellerFile();
 
 	loadSkyImage();
 
