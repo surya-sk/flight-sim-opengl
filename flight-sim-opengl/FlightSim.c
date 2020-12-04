@@ -27,7 +27,8 @@ GLint windowHeight = 600;
 GLint windowWidth = 600;
 
 // camera position
-GLfloat cameraPosition[] = { 0.0, 0.0, 2.5};
+//GLfloat cameraPosition[] = { 0.0, 0.0, 0.0};
+
 
 // difference added at each frame
 GLfloat interpDiff = 0.0003;
@@ -161,6 +162,25 @@ GLfloat theta = 0.0;
 GLfloat i1Scales[3], i2Scales[3], i3Scales[3];
 GLfloat level1Colors[3], level2Colors[3];
 
+
+GLfloat cameraPosition[3] = { 0,0,0 };
+GLfloat cameraDirectionAngle = 0;
+
+GLfloat cameraSpeed = 0;
+
+struct directionVector
+{
+	GLfloat dirVector[3];
+};
+
+struct directionVector convertToVector(GLfloat angle)
+{
+	struct directionVector resVector;
+	resVector.dirVector[0] = sin((angle * 3.142) / 180);
+	resVector.dirVector[1] = 0;
+	resVector.dirVector[2] = -cos((angle * 3.142) / 180);
+	return resVector;
+}
 
 
 /************************************************************************
@@ -838,6 +858,8 @@ void initializeGL()
 		rainPosZ[i] = getRandomFloat(7.0, -7.0);
 	}
 
+	cameraSpeed = 0.001;
+
 }
 
 /************************************************************************
@@ -1036,7 +1058,8 @@ void drawPlane()
 	glPushMatrix();
 
 
-	glTranslatef(0, cameraPosition[1],  -2.5);
+	glRotatef(-angle, 0, 1, 0);
+	glTranslatef(cameraPosition[0], cameraPosition[1], -2.5 + cameraPosition[2]);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
@@ -1251,20 +1274,22 @@ void myDisplay()
 
 	glLoadIdentity();
 
-	camX += cos((angle + 90) * TO_RADIANS) ;
-	camZ -= sin((angle + 90)* TO_RADIANS) ;
+	struct directionVector dirVector;
+	dirVector = convertToVector(angle);
+	GLfloat xLookAt = cameraPosition[0] + dirVector.dirVector[0];
+	GLfloat yLookAt = cameraPosition[1] + dirVector.dirVector[1];
+	GLfloat zLookAt = cameraPosition[2] + dirVector.dirVector[2];
 
-	glRotatef(angle, 0, 1, 0);
-	//glTranslatef(-camX, 0.0, -camZ);
-	// set the camera position
+	//printf("Position : %f %f %f \n", cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+	//printf("Look at : %f %f %f \n", xLookAt, yLookAt, zLookAt);
+	//printf("Direction: %f %f %f \n", dirVector.dirVector[0], dirVector.dirVector[1], dirVector.dirVector[2]);
+	//printf("Angle : %f \n", angle);
+
+
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
-		cameraPosition[0], cameraPosition[1], cameraPosition[2] - 100,
+		xLookAt , yLookAt, zLookAt,
 		0, 1, 0);
 
-	// set the camera position
-	//gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
-	//	cameraPosition[0] + sin((angle * 3.142) / 180), cameraPosition[1], cameraPosition[2] - cos((angle * 3.142) / 180),
-	//	0, 1, 0);
 
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
@@ -1336,7 +1361,6 @@ void myDisplay()
 
 
 	glPushMatrix();
-	glRotatef(-angle, 0.0, 1.0, 0.0);
 	drawPlane();
 	glPopMatrix();
 
@@ -1344,6 +1368,9 @@ void myDisplay()
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
 	glutSwapBuffers();
+
+	cameraPosition[0] += cameraSpeed * dirVector.dirVector[0];
+	cameraPosition[2] += cameraSpeed * dirVector.dirVector[2];
 
 }
 
@@ -1361,12 +1388,6 @@ void specialKeys(int key, int x, int y)
 {
 	switch (key)
 	{
-	//case GLUT_KEY_RIGHT:
-	//	moveRight = 1;
-	//	break;
-	//case GLUT_KEY_LEFT:
-	//	moveLeft = 1;
-	//	break;
 	case GLUT_KEY_UP:
 		moveUp = 1;
 		break;
@@ -1409,11 +1430,13 @@ void determineMovement()
 	if (increaseSpeed)
 	{
 		speed += 0.0002;
+		cameraSpeed += speed;
 		increaseSpeed = 0;
 	}
 	if (decreaseSpeed)
 	{
 		speed -= 0.0002;
+		cameraSpeed += speed;
 		if (speed < 0)
 		{
 			speed = 0;
