@@ -1071,7 +1071,7 @@ void drawPlane()
 
 
 	glRotatef(-angle, 0, 1, 0);
-	glTranslatef(cameraPosition[0], cameraPosition[1], zLookAt);
+	glTranslatef(cameraPosition[0], cameraPosition[1] - 0.3, -2.5 + cameraPosition[2]);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
@@ -1436,18 +1436,17 @@ void determineMovement()
 	}
 	if (increaseSpeed)
 	{
-		speed += 0.0002;
-		cameraSpeed += speed;
+		cameraSpeed += 0.0002;
 		increaseSpeed = 0;
 	}
 	if (decreaseSpeed)
 	{
-		speed -= 0.0002;
-		cameraSpeed += speed;
-		if (speed < 0)
+		cameraSpeed -= 0.0002;
+		if (cameraSpeed < 0)
 		{
-			speed = 0;
+			cameraSpeed = 0;
 		}
+		decreaseSpeed = 0;
 	}
 }
 
