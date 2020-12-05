@@ -769,10 +769,49 @@ int getRandomNumber(int min, int max)
 /************************************************************************
 
 
+Function:		printControls
+
+
+Description : prints controls to the terminal
+
+
+*************************************************************************/
+void printControls()
+{
+	printf("Scene Controls\n");
+	printf("---------\n\n");
+	printf("s : toggle grid\n");
+	printf("w : toggle wireframe\n");
+	printf("b : toggle fog\n");
+	printf("f : toggle fullscreen\n");
+	printf("q : quit application\n");
+	printf("m : toggle mountains\n");
+	printf("t : toggle mountain textures\n");
+	printf("1 : enable first plane color\n");
+	printf("2 : enable second plane color\n");
+	printf("3 : enable third plane color\n");
+	printf("4 : toggle rain\n");
+	printf("5 : toggle snow\n");
+	printf("4 : toggle mist\n");
+	printf("7 : enable sunrise\n");
+	printf("8 : enable sunset\n");
+	printf("9 : enable night\n\n");
+	printf("Camera Controls\n");
+	printf("---------\n\n");
+	printf("up arrow : move up\n");
+	printf("down arrow: move down\n");
+	printf("mouse: change direction\n");
+	printf("page up : increase speed\n");
+	printf("page down : decrease speed\n");
+}
+
+/************************************************************************
+
+
 Function:		initializeGL
 
 
-	Description : Initializes the OpenGL rendering context for display.
+Description : Initializes the OpenGL rendering context for display.
 
 
 *************************************************************************/
@@ -828,6 +867,8 @@ void initializeGL()
 
 	// enable depth testing
 	glEnable(GL_DEPTH_TEST);
+
+	printControls();
 
 	// read texture and data files
 	readCessnaFile();
@@ -1068,7 +1109,6 @@ void drawPlane()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, whiteSpecular);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, highShininess);
 	glPushMatrix();
-
 
 	glRotatef(-angle, 0, 1, 0);
 	glTranslatef(cameraPosition[0], cameraPosition[1] - 0.3, -2.5 + cameraPosition[2]);
