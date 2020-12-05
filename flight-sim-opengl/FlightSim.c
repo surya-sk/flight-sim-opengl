@@ -157,22 +157,34 @@ GLfloat mistDensity = 0.1;
 GLfloat mistColor[4] = { 0.3,0.3,0.3,1.0 };
 
 GLfloat theta = 0.0;
+GLfloat xLookAt, yLookAt, zLookAt = 0;
 
 // island scales and colors
 GLfloat i1Scales[3], i2Scales[3], i3Scales[3];
 GLfloat level1Colors[3], level2Colors[3];
 
+// set camera position
+GLfloat cameraPosition[3] = { 0,0,2.5 };
 
-GLfloat cameraPosition[3] = { 0,0,0 };
-GLfloat cameraDirectionAngle = 0;
-
+// set camera speed
 GLfloat cameraSpeed = 0;
 
+// struct for direction vector
 struct directionVector
 {
 	GLfloat dirVector[3];
 };
 
+/************************************************************************
+
+
+Function:		convertToVector
+
+
+Description : Takes in an angle and converts it to vector
+
+
+*************************************************************************/
 struct directionVector convertToVector(GLfloat angle)
 {
 	struct directionVector resVector;
@@ -1059,7 +1071,7 @@ void drawPlane()
 
 
 	glRotatef(-angle, 0, 1, 0);
-	glTranslatef(cameraPosition[0], cameraPosition[1], -2.5 + cameraPosition[2]);
+	glTranslatef(cameraPosition[0], cameraPosition[1], zLookAt);
 	glScalef(0.5, 0.5, 0.5);
 	glRotatef(-90.0, 0.0, 1.0, 0.0);
 	int count = 0;
@@ -1276,14 +1288,9 @@ void myDisplay()
 
 	struct directionVector dirVector;
 	dirVector = convertToVector(angle);
-	GLfloat xLookAt = cameraPosition[0] + dirVector.dirVector[0];
-	GLfloat yLookAt = cameraPosition[1] + dirVector.dirVector[1];
-	GLfloat zLookAt = cameraPosition[2] + dirVector.dirVector[2];
-
-	//printf("Position : %f %f %f \n", cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-	//printf("Look at : %f %f %f \n", xLookAt, yLookAt, zLookAt);
-	//printf("Direction: %f %f %f \n", dirVector.dirVector[0], dirVector.dirVector[1], dirVector.dirVector[2]);
-	//printf("Angle : %f \n", angle);
+	xLookAt = cameraPosition[0] + dirVector.dirVector[0];
+	yLookAt = cameraPosition[1] + dirVector.dirVector[1];
+	zLookAt = cameraPosition[2] + dirVector.dirVector[2];
 
 
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
