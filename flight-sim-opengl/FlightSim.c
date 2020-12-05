@@ -162,28 +162,17 @@ GLfloat theta = 0.0;
 GLfloat i1Scales[3], i2Scales[3], i3Scales[3];
 GLfloat level1Colors[3], level2Colors[3];
 
-// set camera position
-GLfloat cameraPosition[3] = { 0,0,4.5 };
 
-// set camera movement speed
+GLfloat cameraPosition[3] = { 0,0,0 };
+GLfloat cameraDirectionAngle = 0;
+
 GLfloat cameraSpeed = 0;
 
-// struct for storing the direction vector of the camera
 struct directionVector
 {
 	GLfloat dirVector[3];
 };
 
-/************************************************************************
-
-
-Function:		convertToVector
-
-
-Description :	Takes in an angle and converts it to a vector.
-
-
-*************************************************************************/
 struct directionVector convertToVector(GLfloat angle)
 {
 	struct directionVector resVector;
@@ -853,7 +842,6 @@ void initializeGL()
 	createMountTexture();
 
 	// set defaults
-	startRain = 0;
 	showTextures = 1;
 	firstSkin = 1;
 	sunrise = 1;
@@ -1211,6 +1199,8 @@ void drawSeaAndSky(GLUquadric *quad)
 	glDisable(GL_TEXTURE_2D);
 }
 
+
+
 /************************************************************************
 
 
@@ -1290,6 +1280,12 @@ void myDisplay()
 	GLfloat yLookAt = cameraPosition[1] + dirVector.dirVector[1];
 	GLfloat zLookAt = cameraPosition[2] + dirVector.dirVector[2];
 
+	//printf("Position : %f %f %f \n", cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+	//printf("Look at : %f %f %f \n", xLookAt, yLookAt, zLookAt);
+	//printf("Direction: %f %f %f \n", dirVector.dirVector[0], dirVector.dirVector[1], dirVector.dirVector[2]);
+	//printf("Angle : %f \n", angle);
+
+
 	gluLookAt(cameraPosition[0], cameraPosition[1], cameraPosition[2],
 		xLookAt , yLookAt, zLookAt,
 		0, 1, 0);
@@ -1297,6 +1293,15 @@ void myDisplay()
 
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
+	if (startSnow)
+	{
+		startSnowing();
+	}
+
+	if (startRain)
+	{
+		startRaining();
+	}
 
 	if (showWireFrame)
 	{
@@ -1343,17 +1348,6 @@ void myDisplay()
 			drawIsland(quad);
 			glPopMatrix();
 		}
-
-
-		if (startSnow)
-		{
-			startSnowing();
-		}
-
-		if (startRain)
-		{
-			startRaining();
-		}
 	}
 	
 	if (showGrid)
@@ -1363,15 +1357,18 @@ void myDisplay()
 		// draw grid
 		drawGrid();
 	}
-	
-	// draw the plane
+
+
+
+	glPushMatrix();
 	drawPlane();
+	glPopMatrix();
+
 	 
 	glTranslatef(-cameraPosition[0], -cameraPosition[1], -cameraPosition[2]);
 
 	glutSwapBuffers();
 
-	// increase camera position at each frame
 	cameraPosition[0] += cameraSpeed * dirVector.dirVector[0];
 	cameraPosition[2] += cameraSpeed * dirVector.dirVector[2];
 
@@ -1432,15 +1429,17 @@ void determineMovement()
 	}
 	if (increaseSpeed)
 	{
-		cameraSpeed += 0.0002;
+		speed += 0.0002;
+		cameraSpeed += speed;
 		increaseSpeed = 0;
 	}
 	if (decreaseSpeed)
 	{
-		cameraSpeed -= 0.0002;
-		if (cameraSpeed < 0)
+		speed -= 0.0002;
+		cameraSpeed += speed;
+		if (speed < 0)
 		{
-			cameraSpeed = 0;
+			speed = 0;
 		}
 	}
 }
