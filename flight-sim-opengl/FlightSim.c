@@ -162,17 +162,28 @@ GLfloat theta = 0.0;
 GLfloat i1Scales[3], i2Scales[3], i3Scales[3];
 GLfloat level1Colors[3], level2Colors[3];
 
-
+// set camera position
 GLfloat cameraPosition[3] = { 0,0,0 };
-GLfloat cameraDirectionAngle = 0;
 
+// set camera movement speed
 GLfloat cameraSpeed = 0;
 
+// struct for storing the direction vector of the camera
 struct directionVector
 {
 	GLfloat dirVector[3];
 };
 
+/************************************************************************
+
+
+Function:		convertToVector
+
+
+Description :	Takes in an angle and converts it to a vector.
+
+
+*************************************************************************/
 struct directionVector convertToVector(GLfloat angle)
 {
 	struct directionVector resVector;
