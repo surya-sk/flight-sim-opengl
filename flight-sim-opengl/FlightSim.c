@@ -20,7 +20,7 @@ Author:			Surya Kashyap
 
 #define TO_RADIANS 3.14/180.0
 
-#define SNOW_NUM 10000
+#define SNOW_NUM 1000
 
 // window dimensions
 GLint windowHeight = 600;
@@ -1527,7 +1527,7 @@ void myIdle()
 			snowPosY[i] -= 0.002;
 			if (snowPosY[i] < -1.0)
 			{
-				snowPosY[i] = 2.0;
+				snowPosY[i] = 4.0;
 			}
 		}
 
@@ -1536,7 +1536,7 @@ void myIdle()
 			rainPosY[i] -= 0.002;
 			if (rainPosY[i] < -1.0)
 			{
-				rainPosY[i] = 2.0;
+				rainPosY[i] = 4.0;
 			}
 		}
 	}
