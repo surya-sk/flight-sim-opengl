@@ -1525,11 +1525,19 @@ void myIdle()
 		if (startSnow)
 		{
 			snowPosY[i] -= 0.002;
+			if (snowPosY[i] < -1.0)
+			{
+				snowPosY[i] = 2.0;
+			}
 		}
 
 		if (startRain)
 		{
 			rainPosY[i] -= 0.002;
+			if (rainPosY[i] < -1.0)
+			{
+				rainPosY[i] = 2.0;
+			}
 		}
 	}
 	theta += 0.02;
